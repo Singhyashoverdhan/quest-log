@@ -15,26 +15,35 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #15171c; color: #e7e9ee; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body { background: #15171c; color: #e7e9ee; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
     .mono { font-family: 'IBM Plex Mono', monospace; }
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
-    @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+    input, textarea, select { font-family: inherit; }
+    @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)} }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }
     .fade { animation: fadeIn .2s ease; }
+    .fadeUp { animation: fadeUp .3s ease; }
     .shake { animation: shake .3s ease; }
     .spin { animation: spin 1s linear infinite; }
-    button { font-family: inherit; cursor: pointer; }
-    ::-webkit-scrollbar { display: none; }
+    .pulse { animation: pulse 2s infinite; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2d35; border-radius: 4px; }
+    ::placeholder { color: #5f6470; }
+    * { -webkit-font-smoothing: antialiased; }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 
-// ─── CREDENTIALS ─────────────────────────────────────────────────────────────
+// ─── CREDENTIALS ──────────────────────────────────────────────────────────────
 const SHEET_ID     = "1yhxYC2dxz7xC2h_kvf-6Hd25ASxOv6AI9YHlVEyOc0Q";
 const CLIENT_EMAIL = "questlog-app@questlog-500609.iam.gserviceaccount.com";
 const PRIVATE_KEY  = `-----BEGIN PRIVATE KEY-----
@@ -66,206 +75,246 @@ BZ6Pzuka/lDIGRpM2Xq2qpf2Y5LoI43tRFDBWmwYrG91/0Do4GouQL6QCz9fpqH9
 TkkpzpfJOacQpiHeDtK34FRKNQ==
 -----END PRIVATE KEY-----`;
 
-// ─── USERS ───────────────────────────────────────────────────────────────────
+// ─── USERS & CONSTANTS ────────────────────────────────────────────────────────
 const USERS = [
-  { name: "Yash",    pin: "1111", color: "#e8b34e" },
-  { name: "Soya",    pin: "2222", color: "#7ad6a0" },
-  { name: "Anurag",  pin: "3333", color: "#7eb8f7" },
-  { name: "Shaurya", pin: "4444", color: "#c4a0f5" },
-  { name: "Aastha",  pin: "5555", color: "#f08b8b" },
+  { name:"Yash",    pin:"1111", color:"#e8b34e", isAdmin:true  },
+  { name:"Soya",    pin:"2222", color:"#7ad6a0", isAdmin:false },
+  { name:"Anurag",  pin:"3333", color:"#7eb8f7", isAdmin:false },
+  { name:"Shaurya", pin:"4444", color:"#c4a0f5", isAdmin:false },
+  { name:"Aastha",  pin:"5555", color:"#f08b8b", isAdmin:false },
 ];
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+const TASK_SECTIONS = ["Home","Upcoming Event","Work","Hobby Project","Health","Finance","People","Learning","Someday"];
+
 const CATEGORIES = [
-  { name: "Morning Setup", activities: [
-    { name: "Wake Up", xp: 10 }, { name: "Protein Intake", xp: 2 }, { name: "Breathing", xp: 10 }]},
-  { name: "Physical Health", activities: [
-    { name: "Workout", xp: 25 }, { name: "Breakfast", xp: 5 }, { name: "Hydration", xp: 5 }, { name: "C+MM+Omega", xp: 2 }]},
-  { name: "Cleanse", activities: [
-    { name: "Morning", xp: 2 }, { name: "Care", xp: 2 }]},
-  { name: "Creative Work", activities: [
-    { name: "Typography", xp: 5 }, { name: "Block 1 90m", xp: 20 }, { name: "Block 2 90m", xp: 20 }, { name: "Block 3 90m", xp: 15 }, { name: "Picture", xp: 2 }]},
-  { name: "Learning", activities: [
-    { name: "Light", xp: 8 }, { name: "Heavy", xp: 15 }, { name: "Exploration/Finance 60m", xp: 10 }, { name: "Wind Down", xp: 8 }]},
-  { name: "Food", activities: [
-    { name: "Lunch", xp: 2 }, { name: "Dinner", xp: 2 }]},
-  { name: "Expression", activities: [
-    { name: "Writing 60m", xp: 20 }, { name: "Communication 45m", xp: 10 }]},
+  { name:"Morning Setup", activities:[{name:"Wake Up",xp:10},{name:"Protein Intake",xp:2},{name:"Breathing",xp:10}]},
+  { name:"Physical Health", activities:[{name:"Workout",xp:25},{name:"Breakfast",xp:5},{name:"Hydration",xp:5},{name:"C+MM+Omega",xp:2}]},
+  { name:"Cleanse", activities:[{name:"Morning",xp:2},{name:"Care",xp:2}]},
+  { name:"Creative Work", activities:[{name:"Typography",xp:5},{name:"Block 1 90m",xp:20},{name:"Block 2 90m",xp:20},{name:"Block 3 90m",xp:15},{name:"Picture",xp:2}]},
+  { name:"Learning", activities:[{name:"Light",xp:8},{name:"Heavy",xp:15},{name:"Exploration/Finance 60m",xp:10},{name:"Wind Down",xp:8}]},
+  { name:"Food", activities:[{name:"Lunch",xp:2},{name:"Dinner",xp:2}]},
+  { name:"Expression", activities:[{name:"Writing 60m",xp:20},{name:"Communication 45m",xp:10}]},
 ];
 const TOTAL_XP = CATEGORIES.reduce((s,c)=>s+c.activities.reduce((a,x)=>a+x.xp,0),0);
+
 const MEASUREMENT_AREAS = [
-  { name: "Neck", note: "Around Adam's apple", base: 14.5 },
-  { name: "Shoulders (around)", note: "Widest point, around both", base: 45.5 },
-  { name: "Chest", note: "Across nipples, normal breath", base: 37 },
-  { name: "Upper Arm (Bicep)", note: "Flexed", base: 13 },
-  { name: "Forearm", note: "Thickest part", base: 10.5 },
-  { name: "Waist (Narrowest)", note: "1 inch above belly button", base: 32 },
-  { name: "Lower Waist (Belly)", note: "At the belly button", base: 33.5 },
-  { name: "Hips", note: "Widest part of glutes", base: 35.5 },
-  { name: "Thigh", note: "Thickest part, near groin", base: 22.5 },
-  { name: "Calves", note: "Thickest part of calf", base: 14 },
+  {name:"Neck",note:"Around Adam's apple"},
+  {name:"Shoulders (around)",note:"Widest point, around both"},
+  {name:"Chest",note:"Across nipples, normal breath"},
+  {name:"Upper Arm (Bicep)",note:"Flexed"},
+  {name:"Forearm",note:"Thickest part"},
+  {name:"Waist (Narrowest)",note:"1 inch above belly button"},
+  {name:"Lower Waist (Belly)",note:"At the belly button"},
+  {name:"Hips",note:"Widest part of glutes"},
+  {name:"Thigh",note:"Thickest part, near groin"},
+  {name:"Calves",note:"Thickest part of calf"},
+  {name:"Weight",note:"kg"},
 ];
 
 // ─── SHEETS API ───────────────────────────────────────────────────────────────
+let _tokenCache = null;
 async function getAccessToken() {
-  const now = Math.floor(Date.now()/1000);
-  const encode = obj => btoa(JSON.stringify(obj)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  const header = encode({alg:'RS256',typ:'JWT'});
-  const claim  = encode({iss:CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now});
-  const unsigned = `${header}.${claim}`;
-  const pemBody = PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g,'');
-  const bin = Uint8Array.from(atob(pemBody),c=>c.charCodeAt(0));
-  const key = await crypto.subtle.importKey('pkcs8',bin.buffer,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
-  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(unsigned));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  const res = await fetch('https://oauth2.googleapis.com/token',{
-    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${unsigned}.${sigB64}`
-  });
-  return (await res.json()).access_token;
+  if (_tokenCache && _tokenCache.exp > Date.now()/1000+60) return _tokenCache.token;
+  const now=Math.floor(Date.now()/1000);
+  const encode=obj=>btoa(JSON.stringify(obj)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const h=encode({alg:'RS256',typ:'JWT'});
+  const c=encode({iss:CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now});
+  const u=`${h}.${c}`;
+  const pem=PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g,'');
+  const bin=Uint8Array.from(atob(pem),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('pkcs8',bin.buffer,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
+  const sig=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(u));
+  const s=btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const res=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${u}.${s}`});
+  const d=await res.json();
+  _tokenCache={token:d.access_token,exp:now+3600};
+  return d.access_token;
 }
 async function readSheet(tab) {
-  const token = await getAccessToken();
-  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}`,{headers:{Authorization:`Bearer ${token}`}});
-  return (await res.json()).values || [];
+  const token=await getAccessToken();
+  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}`,{headers:{Authorization:`Bearer ${token}`}});
+  return (await res.json()).values||[];
 }
-async function appendRow(tab, values) {
-  const token = await getAccessToken();
-  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED`,{
-    method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
-    body:JSON.stringify({values:[values]})
-  });
+async function appendRow(tab,values) {
+  const token=await getAccessToken();
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({values:[values]})});
+}
+async function updateRange(range,values) {
+  const token=await getAccessToken();
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,{method:'PUT',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({values})});
+}
+async function clearAndWriteRange(range,values) {
+  const token=await getAccessToken();
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}:clear`,{method:'POST',headers:{Authorization:`Bearer ${token}`}});
+  if(values.length>0) await updateRange(range,values);
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function getDateKey(offset=0) {
-  const d=new Date(); d.setDate(d.getDate()+offset);
-  return d.toISOString().slice(0,10);
-}
-function fmtDate(key) {
-  return new Date(key+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-}
-function parseLogRows(rows) {
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function getDateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10);}
+function fmtDate(key){return new Date(key+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function fmtDateShort(key){return new Date(key+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function fmtMins(m){if(!m&&m!==0)return'—';if(m<60)return`${m}m`;return`${Math.floor(m/60)}h ${m%60>0?m%60+'m':''}`;}
+const TODAY = getDateKey(0);
+
+// ─── DATA PARSERS ─────────────────────────────────────────────────────────────
+function parseLogRows(rows){
   const logs={};
   for(let i=1;i<rows.length;i++){
     const [date,user,cat,act,,completed]=rows[i];
     if(!date||!user||!cat||!act) continue;
-    if(!logs[user]) logs[user]={};
-    if(!logs[user][date]) logs[user][date]={};
+    if(!logs[user])logs[user]={};
+    if(!logs[user][date])logs[user][date]={};
     logs[user][date][`${cat}::${act}`]=completed==='TRUE'||completed===true;
   }
   return logs;
 }
-function parseMeasRows(rows) {
+function parseMeasRows(rows){
+  // Date,User,Area,Value,Target
   const m={};
   for(let i=1;i<rows.length;i++){
     const [date,user,area,value]=rows[i];
     if(!date||!user||!area||value==null) continue;
-    if(!m[user]) m[user]={};
-    if(!m[user][date]) m[user][date]={};
+    if(!m[user])m[user]={};
+    if(!m[user][date])m[user][date]={};
     m[user][date][area]=parseFloat(value);
   }
   return m;
 }
-
-// ─── ICONS ───────────────────────────────────────────────────────────────────
-const IC = {
-  Check:    ()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Activity: ()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
-  Ruler:    ()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21.3 8.7 8.7 21.3c-.4.4-1 .4-1.4 0L2.7 16.7c-.4-.4-.4-1 0-1.4L15.3 2.7c.4-.4 1-.4 1.4 0l4.6 4.6c.4.4.4 1 0 1.4z"/><line x1="11" y1="6" x2="6" y2="11"/><line x1="16" y1="11" x2="11" y2="16"/></svg>,
-  Today:    ()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-  Refresh:  ()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.7-5.5"/></svg>,
-  Loader:   ()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8b34e" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>,
-  Left:     ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>,
-  Right:    ()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>,
-  Eye:      ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-  Lock:     ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-  Users:    ()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  Logout:   ()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
-};
-
-const navBtn = {width:34,height:34,borderRadius:8,border:'1px solid #2a2d35',background:'#1c1f26',color:'#e7e9ee',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'};
-
-// ─── LOGIN SCREEN ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [selected, setSelected] = React.useState(null);
-  const [pin, setPin] = React.useState('');
-  const [error, setError] = React.useState(false);
-  const [shakeKey, setShakeKey] = React.useState(0);
-
-  function handlePinDigit(d) {
-    if (pin.length >= 4) return;
-    const next = pin + d;
-    setPin(next);
-    if (next.length === 4) {
-      setTimeout(() => {
-        const user = USERS.find(u => u.name === selected);
-        if (user && user.pin === next) {
-          onLogin(user);
-        } else {
-          setError(true);
-          setShakeKey(k => k+1);
-          setTimeout(() => { setPin(''); setError(false); }, 600);
-        }
-      }, 100);
+function parseTargetRows(rows){
+  // User,Area,Target
+  const t={};
+  for(let i=1;i<rows.length;i++){
+    const [user,area,target]=rows[i];
+    if(!user||!area) continue;
+    if(!t[user])t[user]={};
+    t[user][area]=parseFloat(target)||null;
+  }
+  return t;
+}
+function parseTaskRows(rows){
+  // ID,User,Title,Notes,Section,DueDate,EstMins,ActMins,Starred,Status,CompletedAt,CreatedAt
+  const tasks={};
+  for(let i=1;i<rows.length;i++){
+    const [id,user,title,notes,section,dueDate,estMins,actMins,starred,status,completedAt,createdAt]=rows[i];
+    if(!id||!user) continue;
+    if(!tasks[user])tasks[user]=[];
+    tasks[user].push({id,user,title,notes,section,dueDate,estMins:parseInt(estMins)||0,actMins:parseInt(actMins)||0,starred:starred==='TRUE',status:status||'active',completedAt,createdAt,subtasks:[]});
+  }
+  return tasks;
+}
+function parseSubtaskRows(rows,tasksByUser){
+  // ID,TaskID,User,Title,Done
+  for(let i=1;i<rows.length;i++){
+    const [id,taskId,user,title,done]=rows[i];
+    if(!id||!taskId||!user) continue;
+    if(tasksByUser[user]){
+      const task=tasksByUser[user].find(t=>t.id===taskId);
+      if(task) task.subtasks.push({id,taskId,user,title,done:done==='TRUE'});
     }
   }
+  return tasksByUser;
+}
+function parseChallengeRows(rows){
+  // Date,Prompt,CompletedBy
+  const c={};
+  for(let i=1;i<rows.length;i++){
+    const [date,prompt,completedBy]=rows[i];
+    if(!date) continue;
+    c[date]={prompt:prompt||'',completedBy:completedBy?completedBy.split(',').filter(Boolean):[]};
+  }
+  return c;
+}
 
-  function handleBack() {
-    setPin(p => p.slice(0,-1));
-    setError(false);
+// ─── ICONS ───────────────────────────────────────────────────────────────────
+const IC={
+  Check:    (s=13)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  Activity: (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  Ruler:    (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21.3 8.7 8.7 21.3c-.4.4-1 .4-1.4 0L2.7 16.7c-.4-.4-.4-1 0-1.4L15.3 2.7c.4-.4 1-.4 1.4 0l4.6 4.6c.4.4.4 1 0 1.4z"/><line x1="11" y1="6" x2="6" y2="11"/><line x1="16" y1="11" x2="11" y2="16"/></svg>,
+  Today:    (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  Refresh:  (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.7-5.5"/></svg>,
+  Loader:   (s=20)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>,
+  Left:     (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>,
+  Right:    (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  Star:     (s=15,fill='none')=><svg width={s} height={s} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  Plus:     (s=20)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  X:        (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Users:    (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  Logout:   (s=15)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  Home:     (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  Task:     (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  Camera:   (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+  Clock:    (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  Edit:     (s=13)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Trash:    (s=13)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+  Eye:      (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  Target:   (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+  Flame:    (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+};
+
+// ─── SHARED STYLES ────────────────────────────────────────────────────────────
+const card = (extra={})=>({background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:16,...extra});
+const navBtn = {width:34,height:34,borderRadius:8,border:'1px solid #2a2d35',background:'#1c1f26',color:'#e7e9ee',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'};
+const input = (extra={})=>({width:'100%',padding:'10px 14px',borderRadius:10,border:'1px solid #2a2d35',background:'#15171c',color:'#e7e9ee',fontSize:14,outline:'none',...extra});
+const pill = (color,extra={})=>({display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',borderRadius:20,background:color+'18',border:`1px solid ${color}33`,color,fontSize:11,fontWeight:600,...extra});
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function LoginScreen({onLogin}){
+  const [sel,setSel]=React.useState(null);
+  const [pin,setPin]=React.useState('');
+  const [err,setErr]=React.useState(false);
+  const [shakeKey,setShakeKey]=React.useState(0);
+
+  function digit(d){
+    if(pin.length>=4) return;
+    const next=pin+d;
+    setPin(next);
+    if(next.length===4){
+      setTimeout(()=>{
+        const u=USERS.find(u=>u.name===sel);
+        if(u&&u.pin===next){onLogin(u);}
+        else{setErr(true);setShakeKey(k=>k+1);setTimeout(()=>{setPin('');setErr(false);},600);}
+      },100);
+    }
   }
 
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,background:'#15171c'}}>
       <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:2,marginBottom:8}}>DAY IN LIFE</div>
-      <div style={{fontSize:28,fontWeight:700,marginBottom:40}}>Quest Log</div>
-
-      {!selected ? (
+      <div style={{fontSize:30,fontWeight:700,marginBottom:6}}>Quest Log</div>
+      <div style={{fontSize:13,color:'#5f6470',marginBottom:48}}>Your personal operating system</div>
+      {!sel?(
         <div className="fade" style={{width:'100%',maxWidth:340}}>
-          <div style={{fontSize:14,color:'#9aa1ad',textAlign:'center',marginBottom:20}}>Who are you?</div>
-          <div style={{display:'flex',flexDirection:'column',gap:10}}>
-            {USERS.map(u => (
-              <button key={u.name} onClick={() => { setSelected(u.name); setPin(''); setError(false); }} style={{
-                padding:'14px 20px',borderRadius:12,border:`1px solid ${u.color}22`,
-                background:`${u.color}11`,color:'#e7e9ee',fontSize:16,fontWeight:600,
-                textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',transition:'all .15s'
-              }}>
-                <span>{u.name}</span>
-                <div style={{width:10,height:10,borderRadius:'50%',background:u.color}}/>
-              </button>
-            ))}
-          </div>
+          <div style={{fontSize:13,color:'#9aa1ad',textAlign:'center',marginBottom:16}}>Who are you?</div>
+          {USERS.map(u=>(
+            <button key={u.name} onClick={()=>{setSel(u.name);setPin('');setErr(false);}} style={{
+              display:'flex',alignItems:'center',justifyContent:'space-between',
+              width:'100%',padding:'14px 20px',borderRadius:12,marginBottom:10,
+              border:`1px solid ${u.color}33`,background:`${u.color}0d`,color:'#e7e9ee',
+              fontSize:16,fontWeight:600,transition:'all .15s'
+            }}>
+              <span>{u.name}</span>
+              <div style={{width:10,height:10,borderRadius:'50%',background:u.color}}/>
+            </button>
+          ))}
         </div>
-      ) : (
+      ):(
         <div className="fade" style={{width:'100%',maxWidth:300,display:'flex',flexDirection:'column',alignItems:'center'}}>
-          <button onClick={()=>{setSelected(null);setPin('');}} style={{background:'none',border:'none',color:'#7c8493',fontSize:13,marginBottom:24,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
-            <IC.Left/> back
+          <button onClick={()=>{setSel(null);setPin('');}} style={{color:'#7c8493',fontSize:13,marginBottom:24,display:'flex',alignItems:'center',gap:6}}>
+            {IC.Left()} back
           </button>
-          <div style={{fontSize:18,fontWeight:700,marginBottom:8}}>{selected}</div>
+          <div style={{fontSize:20,fontWeight:700,marginBottom:4}}>{sel}</div>
           <div style={{fontSize:13,color:'#7c8493',marginBottom:32}}>Enter your PIN</div>
-
-          {/* PIN dots */}
-          <div key={shakeKey} className={error?'shake':''} style={{display:'flex',gap:16,marginBottom:40}}>
+          <div key={shakeKey} className={err?'shake':''} style={{display:'flex',gap:16,marginBottom:40}}>
             {[0,1,2,3].map(i=>(
-              <div key={i} style={{width:14,height:14,borderRadius:'50%',
-                background: pin.length>i ? (error?'#f08b8b': USERS.find(u=>u.name===selected)?.color||'#e8b34e') : '#2a2d35',
-                transition:'background .1s'}}/>
+              <div key={i} style={{width:14,height:14,borderRadius:'50%',background:pin.length>i?(err?'#f08b8b':USERS.find(u=>u.name===sel)?.color||'#e8b34e'):'#2a2d35',transition:'background .1s'}}/>
             ))}
           </div>
-
-          {/* Numpad */}
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,width:'100%',maxWidth:260}}>
             {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d,i)=>(
-              <button key={i} onClick={()=>d===''?null:d==='⌫'?handleBack():handlePinDigit(String(d))}
+              <button key={i} onClick={()=>d===''?null:d==='⌫'?setPin(p=>p.slice(0,-1)):digit(String(d))}
                 disabled={d===''}
-                style={{
-                  height:60,borderRadius:12,border:'1px solid #2a2d35',
-                  background: d===''?'transparent':'#1c1f26',
-                  color:'#e7e9ee',fontSize:20,fontWeight:600,
-                  opacity:d===''?0:1,cursor:d===''?'default':'pointer',
-                  transition:'background .1s'
-                }}>
+                style={{height:60,borderRadius:12,border:'1px solid #2a2d35',background:d===''?'transparent':'#1c1f26',color:'#e7e9ee',fontSize:20,fontWeight:600,opacity:d===''?0:1,cursor:d===''?'default':'pointer'}}>
                 {d}
               </button>
             ))}
@@ -276,33 +325,385 @@ function LoginScreen({ onLogin }) {
   );
 }
 
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function Modal({title,onClose,children,wide}){
+  return (
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',padding:'0'}}>
+      <div onClick={e=>e.stopPropagation()} className="fadeUp" style={{background:'#1c1f26',borderRadius:'20px 20px 0 0',border:'1px solid #2a2d35',borderBottom:'none',width:'100%',maxWidth:wide?680:480,maxHeight:'90vh',overflow:'auto',padding:'24px 24px 40px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <div style={{fontWeight:700,fontSize:17}}>{title}</div>
+          <button onClick={onClose} style={{...navBtn,width:28,height:28}}>{IC.X()}</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── TIME LOG MODAL ───────────────────────────────────────────────────────────
+function TimeLogModal({taskTitle,onSubmit,onClose}){
+  const [mins,setMins]=React.useState('');
+  return (
+    <Modal title="Log Time Spent" onClose={onClose}>
+      <div style={{fontSize:14,color:'#9aa1ad',marginBottom:16}}>"{taskTitle}"</div>
+      <div style={{fontSize:13,color:'#7c8493',marginBottom:8}}>How long did this actually take?</div>
+      <input type="number" placeholder="minutes" value={mins} onChange={e=>setMins(e.target.value)} style={input({marginBottom:16})} autoFocus/>
+      <div style={{display:'flex',gap:8',flexWrap:'wrap',marginBottom:20}}>
+        {[15,30,45,60,90,120].map(m=>(
+          <button key={m} onClick={()=>setMins(String(m))} style={{padding:'6px 12px',borderRadius:8,border:'1px solid '+(mins===String(m)?'#e8b34e':'#2a2d35'),background:mins===String(m)?'#e8b34e18':'transparent',color:mins===String(m)?'#e8b34e':'#9aa1ad',fontSize:13,cursor:'pointer'}}>
+            {fmtMins(m)}
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>{onSubmit(parseInt(mins)||0);}} style={{width:'100%',padding:'12px',borderRadius:12,background:'#e8b34e',color:'#15171c',fontWeight:700,fontSize:14,cursor:'pointer'}}>
+        Mark Complete
+      </button>
+    </Modal>
+  );
+}
+
+// ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
+function AddTaskModal({onSave,onClose,defaultSection}){
+  const [title,setTitle]=React.useState('');
+  const [notes,setNotes]=React.useState('');
+  const [section,setSection]=React.useState(defaultSection||'Work');
+  const [dueDate,setDueDate]=React.useState('');
+  const [estMins,setEstMins]=React.useState('');
+  const [starred,setStarred]=React.useState(false);
+  const [subtasks,setSubtasks]=React.useState([]);
+  const [stInput,setStInput]=React.useState('');
+
+  function addSubtask(){if(!stInput.trim())return;setSubtasks(s=>[...s,{id:uid(),title:stInput.trim(),done:false}]);setStInput('');}
+
+  return (
+    <Modal title="New Task" onClose={onClose}>
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        <input placeholder="Task title *" value={title} onChange={e=>setTitle(e.target.value)} style={input()} autoFocus/>
+        <textarea placeholder="Notes (optional)" value={notes} onChange={e=>setNotes(e.target.value)} style={{...input(),resize:'none',height:72}}/>
+        <select value={section} onChange={e=>setSection(e.target.value)} style={{...input(),cursor:'pointer'}}>
+          {TASK_SECTIONS.map(s=><option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+          <div>
+            <div style={{fontSize:12,color:'#7c8493',marginBottom:4}}>Due Date</div>
+            <input type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)} style={input({fontSize:13})}/>
+          </div>
+          <div>
+            <div style={{fontSize:12,color:'#7c8493',marginBottom:4}}>Est. Time (mins)</div>
+            <input type="number" placeholder="60" value={estMins} onChange={e=>setEstMins(e.target.value)} style={input({fontSize:13})}/>
+          </div>
+        </div>
+        {/* Subtasks */}
+        <div>
+          <div style={{fontSize:12,color:'#7c8493',marginBottom:8}}>Checklist / Subtasks</div>
+          {subtasks.map((st,i)=>(
+            <div key={st.id} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+              <div style={{width:16,height:16,borderRadius:4,border:'1px solid #444955',flexShrink:0}}/>
+              <span style={{flex:1,fontSize:13,color:'#c5cad3'}}>{st.title}</span>
+              <button onClick={()=>setSubtasks(s=>s.filter((_,j)=>j!==i))} style={{color:'#f08b8b',display:'flex'}}>{IC.X()}</button>
+            </div>
+          ))}
+          <div style={{display:'flex',gap:8}}>
+            <input placeholder="Add checklist item" value={stInput} onChange={e=>setStInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addSubtask()} style={input({flex:1})}/>
+            <button onClick={addSubtask} style={{...navBtn,borderColor:'#e8b34e22',background:'#e8b34e11',color:'#e8b34e'}}>{IC.Plus()}</button>
+          </div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <button onClick={()=>setStarred(v=>!v)} style={{display:'flex',alignItems:'center',gap:6,color:starred?'#e8b34e':'#7c8493',fontSize:13}}>
+            {IC.Star(15,starred?'#e8b34e':'none')} {starred?'Starred':'Star this task'}
+          </button>
+        </div>
+        <button onClick={()=>{if(!title.trim())return;onSave({title:title.trim(),notes,section,dueDate,estMins:parseInt(estMins)||0,starred,subtasks});}} style={{width:'100%',padding:'13px',borderRadius:12,background:'#e8b34e',color:'#15171c',fontWeight:700,fontSize:15,cursor:'pointer',marginTop:4}}>
+          Add Task
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── MEASUREMENT LOG MODAL ────────────────────────────────────────────────────
+function MeasLogModal({onSave,onClose,lastVals}){
+  const [date,setDate]=React.useState(TODAY);
+  const [vals,setVals]=React.useState({});
+  return (
+    <Modal title="Log Measurements" onClose={onClose} wide>
+      <div style={{fontSize:13,color:'#7c8493',marginBottom:16}}>Log all measurements for a specific date. Leave blank to skip an area.</div>
+      <div style={{marginBottom:14}}>
+        <div style={{fontSize:12,color:'#7c8493',marginBottom:6}}>Date</div>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={input({maxWidth:200})}/>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20}}>
+        {MEASUREMENT_AREAS.map(area=>{
+          const last=lastVals?.[area.name];
+          return (
+            <div key={area.name}>
+              <div style={{fontSize:12,color:'#7c8493',marginBottom:4}}>{area.name} {last!=null&&<span style={{color:'#5f6470'}}>last: {last}</span>}</div>
+              <input type="number" step="0.1" placeholder={last!=null?String(last):'—'}
+                value={vals[area.name]??''}
+                onChange={e=>setVals(v=>({...v,[area.name]:e.target.value}))}
+                style={input({fontSize:13})}/>
+            </div>
+          );
+        })}
+      </div>
+      <button onClick={()=>{
+        const entries=Object.entries(vals).filter(([,v])=>v!=='');
+        if(!entries.length)return;
+        onSave(date,entries);
+      }} style={{width:'100%',padding:'13px',borderRadius:12,background:'#e8b34e',color:'#15171c',fontWeight:700,fontSize:15,cursor:'pointer'}}>
+        Save Measurements
+      </button>
+    </Modal>
+  );
+}
+
+// ─── TARGET MODAL ─────────────────────────────────────────────────────────────
+function TargetModal({currentTargets,onSave,onClose}){
+  const [vals,setVals]=React.useState({...currentTargets});
+  return (
+    <Modal title="Set Targets" onClose={onClose} wide>
+      <div style={{fontSize:13,color:'#7c8493',marginBottom:16}}>Set your ideal/target values. These are saved once and only updated when you edit them.</div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20}}>
+        {MEASUREMENT_AREAS.map(area=>(
+          <div key={area.name}>
+            <div style={{fontSize:12,color:'#7c8493',marginBottom:4}}>{area.name}</div>
+            <input type="number" step="0.1" placeholder="target"
+              value={vals[area.name]??''}
+              onChange={e=>setVals(v=>({...v,[area.name]:e.target.value}))}
+              style={input({fontSize:13})}/>
+          </div>
+        ))}
+      </div>
+      <button onClick={()=>onSave(vals)} style={{width:'100%',padding:'13px',borderRadius:12,background:'#e8b34e',color:'#15171c',fontWeight:700,fontSize:15,cursor:'pointer'}}>
+        Save Targets
+      </button>
+    </Modal>
+  );
+}
+
+// ─── MINI SPARKLINE ───────────────────────────────────────────────────────────
+function Sparkline({data,color,width=120,height=36,target}){
+  if(!data||data.length<2) return <div style={{width,height,display:'flex',alignItems:'center',justifyContent:'center',color:'#5f6470',fontSize:11}}>no data</div>;
+  const vals=data.map(d=>d.v);
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const range=max-min||1;
+  const W=width,H=height,pad=4;
+  const pts=data.map((d,i)=>({x:pad+((W-pad*2)/(data.length-1))*i,y:H-pad-((d.v-min)/range)*(H-pad*2)}));
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area=`${path} L${pts[pts.length-1].x},${H} L${pts[0].x},${H} Z`;
+  const tY=target!=null?H-pad-((target-min)/range)*(H-pad*2):null;
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+      <defs>
+        <linearGradient id={`sg${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#sg${color.replace('#','')})`}/>
+      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {tY!=null&&<line x1={pad} y1={tY} x2={W-pad} y2={tY} stroke="#e8b34e" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>}
+      {pts.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="2" fill={color}/>)}
+    </svg>
+  );
+}
+
+// ─── DONUT CHART ─────────────────────────────────────────────────────────────
+function Donut({data,size=120}){
+  const total=data.reduce((s,d)=>s+d.val,0)||1;
+  let offset=0;
+  const r=42,circ=2*Math.PI*r,cx=size/2,cy=size/2;
+  const slices=data.filter(d=>d.val>0).map(d=>{
+    const pct=d.val/total,dash=pct*circ,gap=circ-dash,start=offset;
+    offset+=dash;
+    return{...d,dash,gap,start};
+  });
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {slices.map((s,i)=>(
+        <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={10}
+          strokeDasharray={`${s.dash} ${s.gap}`} strokeDashoffset={-s.start}
+          transform={`rotate(-90 ${cx} ${cy})`} strokeLinecap="butt"/>
+      ))}
+      <circle cx={cx} cy={cy} r={r-5} fill="#15171c"/>
+      <text x={cx} y={cy-5} textAnchor="middle" fill="#e7e9ee" fontSize="16" fontWeight="700" fontFamily="IBM Plex Mono">{Math.round(slices[0]?.val/total*100)||0}%</text>
+      <text x={cx} y={cy+12} textAnchor="middle" fill="#7c8493" fontSize="9" fontFamily="IBM Plex Mono">{slices[0]?.label||''}</text>
+    </svg>
+  );
+}
+
 // ─── DAY NAV ─────────────────────────────────────────────────────────────────
-function DayNav({ dateKey, dayOffset, setDayOffset }) {
+function DayNav({dateKey,dayOffset,setDayOffset}){
   return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
-      <button onClick={()=>setDayOffset(d=>d-1)} style={navBtn}><IC.Left/></button>
+      <button onClick={()=>setDayOffset(d=>d-1)} style={navBtn}>{IC.Left()}</button>
       <div style={{textAlign:'center'}}>
         <div style={{fontWeight:700,fontSize:16}}>{fmtDate(dateKey)}</div>
         <div className="mono" style={{fontSize:11,color:'#7c8493'}}>{dayOffset===0?'today':dateKey}</div>
       </div>
       <button onClick={()=>setDayOffset(d=>Math.min(0,d+1))} disabled={dayOffset===0}
-        style={{...navBtn,opacity:dayOffset===0?0.3:1,cursor:dayOffset===0?'default':'pointer'}}><IC.Right/></button>
+        style={{...navBtn,opacity:dayOffset===0?0.3:1,cursor:dayOffset===0?'default':'pointer'}}>{IC.Right()}</button>
+    </div>
+  );
+}
+
+// ─── HOME DASHBOARD ───────────────────────────────────────────────────────────
+function HomeTab({currentUser,allLogs,tasks,challenges,accentColor,dayOffset,setDayOffset,onAddTask,earnedXP,fulfilment,catBreakdown,last7,allUsers,allLogsAll}){
+  const dateKey=getDateKey(dayOffset);
+  const myTasks=(tasks[currentUser.name]||[]).filter(t=>t.status==='active');
+  const todayTasks=myTasks.filter(t=>t.dueDate===dateKey||(!t.dueDate&&dayOffset===0));
+  const starredTasks=myTasks.filter(t=>t.starred);
+  const challenge=challenges[dateKey];
+  const completed=challenge?.completedBy||[];
+  const r=52,circ=2*Math.PI*r;
+
+  // time by section this week
+  const allMyTasks=tasks[currentUser.name]||[];
+  const sectionTime={};
+  allMyTasks.filter(t=>t.status==='done'&&t.actMins>0).forEach(t=>{
+    sectionTime[t.section]=(sectionTime[t.section]||0)+t.actMins;
+  });
+  const sectionColors={'Work':'#7eb8f7','Hobby Project':'#c4a0f5','Health':'#7ad6a0','Home':'#e8b34e','Finance':'#f3c873','People':'#f08b8b','Learning':'#a0d8f5','Upcoming Event':'#ffd700','Someday':'#9aa1ad'};
+
+  return (
+    <div className="fade">
+      {/* Greeting */}
+      <div style={{marginBottom:24}}>
+        <div style={{fontSize:22,fontWeight:700,marginBottom:2}}>
+          Good {new Date().getHours()<12?'morning':new Date().getHours()<18?'afternoon':'evening'}, {currentUser.name} 👋
+        </div>
+        <div className="mono" style={{fontSize:12,color:'#7c8493'}}>{fmtDate(dateKey)}</div>
+      </div>
+
+      {/* XP ring + stats row */}
+      <div style={{display:'flex',gap:12,marginBottom:20,alignItems:'stretch'}}>
+        <div style={{...card({padding:'18px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minWidth:130})}}>
+          <svg width={120} height={120} viewBox="0 0 120 120">
+            <circle cx={60} cy={60} r={r} fill="none" stroke="#2a2d35" strokeWidth={9}/>
+            <circle cx={60} cy={60} r={r} fill="none" stroke={accentColor} strokeWidth={9}
+              strokeDasharray={circ} strokeDashoffset={circ*(1-fulfilment/100)}
+              strokeLinecap="round" transform="rotate(-90 60 60)" style={{transition:'stroke-dashoffset .5s ease'}}/>
+            <text x={60} y={55} textAnchor="middle" dominantBaseline="central" fill="#e7e9ee" fontSize={18} fontWeight="700" fontFamily="IBM Plex Mono">{fulfilment}%</text>
+            <text x={60} y={74} textAnchor="middle" fill="#7c8493" fontSize={9} fontFamily="IBM Plex Mono">FULFILMENT</text>
+          </svg>
+          <div style={{textAlign:'center',marginTop:4}}>
+            <div style={{fontSize:22,fontWeight:700,color:accentColor}}>{earnedXP}</div>
+            <div className="mono" style={{fontSize:10,color:'#7c8493'}}>XP of {TOTAL_XP}</div>
+          </div>
+        </div>
+        <div style={{flex:1,display:'flex',flexDirection:'column',gap:10}}>
+          {/* 7 day mini bars */}
+          <div style={{...card({padding:'12px 14px',flex:1})}}>
+            <div className="mono" style={{fontSize:10,color:'#7c8493',letterSpacing:1,marginBottom:8}}>7-DAY STREAK</div>
+            <div style={{display:'flex',alignItems:'flex-end',gap:4,height:40}}>
+              {last7.map(d=>{
+                const maxP=Math.max(...last7.map(x=>x.pct),1);
+                return(
+                  <div key={d.key} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                    <div style={{width:'100%',borderRadius:3,height:Math.max(3,(d.pct/maxP)*30),background:d.pct===0?'#2a2d35':accentColor,transition:'height .3s'}}/>
+                    <div className="mono" style={{fontSize:8,color:'#5f6470'}}>{fmtDate(d.key).slice(0,1)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* Squad activity */}
+          <div style={{...card({padding:'12px 14px',flex:1})}}>
+            <div className="mono" style={{fontSize:10,color:'#7c8493',letterSpacing:1,marginBottom:8}}>SQUAD TODAY</div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {USERS.map(u=>{
+                const dl=(allLogsAll[u.name]||{})[dateKey]||{};
+                let xp=0;CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dl[`${c.name}::${a.name}`])xp+=a.xp;}));
+                const pct=TOTAL_XP?Math.round((xp/TOTAL_XP)*100):0;
+                return(
+                  <div key={u.name} title={`${u.name}: ${pct}%`} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                    <div style={{width:28,height:28,borderRadius:'50%',background:`${u.color}22`,border:`2px solid ${pct>0?u.color:'#2a2d35'}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      <span style={{fontSize:11,fontWeight:700,color:u.color}}>{u.name[0]}</span>
+                    </div>
+                    <div className="mono" style={{fontSize:9,color:'#7c8493'}}>{pct}%</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Picture a day challenge */}
+      {challenge?.prompt&&(
+        <div style={{...card({padding:'16px',marginBottom:16,borderColor:completed.includes(currentUser.name)?'#e8b34e44':'#2a2d35'})}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+            {IC.Camera()}<div style={{fontWeight:600,fontSize:14}}>Picture a Day</div>
+            {completed.includes(currentUser.name)&&<div style={pill('#e8b34e',{marginLeft:'auto'})}>✓ Done</div>}
+          </div>
+          <div style={{fontSize:14,color:'#c5cad3',marginBottom:12}}>{challenge.prompt}</div>
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+            {USERS.map(u=>(
+              <div key={u.name} style={{...pill(completed.includes(u.name)?u.color:'#5f6470')}}>{u.name[0]} {completed.includes(u.name)?'✓':'○'}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Today's tasks */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <div style={{fontWeight:600,fontSize:15}}>Today's Tasks</div>
+        <button onClick={onAddTask} style={{...pill(accentColor),cursor:'pointer',gap:4}}>{IC.Plus(12)} Add</button>
+      </div>
+      {todayTasks.length===0&&starredTasks.length===0?(
+        <div style={{...card({padding:'20px',textAlign:'center',marginBottom:16})}}>
+          <div style={{color:'#5f6470',fontSize:13}}>No tasks for today. Add one to get started.</div>
+        </div>
+      ):(
+        <div style={{marginBottom:16}}>
+          {[...new Set([...todayTasks,...starredTasks])].slice(0,6).map(t=>(
+            <div key={t.id} style={{...card({padding:'12px 14px',marginBottom:8,borderColor:t.starred?accentColor+'33':'#2a2d35'})}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:8,height:8,borderRadius:'50%',background:sectionColors[t.section]||'#7c8493',flexShrink:0}}/>
+                <span style={{flex:1,fontSize:14,fontWeight:500}}>{t.title}</span>
+                {t.starred&&<span style={{color:'#e8b34e'}}>{IC.Star(12,'#e8b34e')}</span>}
+                {t.estMins>0&&<span className="mono" style={{fontSize:11,color:'#7c8493'}}>{fmtMins(t.estMins)}</span>}
+              </div>
+              <div style={{fontSize:11,color:'#5f6470',marginTop:4,marginLeft:18,...{fontFamily:'IBM Plex Mono'}}}>{t.section}{t.dueDate?` · due ${fmtDateShort(t.dueDate)}`:''}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Time by section donut */}
+      {Object.keys(sectionTime).length>0&&(
+        <div style={{...card({padding:'16px',marginBottom:16})}}>
+          <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1,marginBottom:14}}>TIME SPENT BY SECTION</div>
+          <div style={{display:'flex',gap:16,alignItems:'center'}}>
+            <Donut size={110} data={Object.entries(sectionTime).map(([s,v])=>({label:s,val:v,color:sectionColors[s]||'#7c8493'}))}/>
+            <div style={{flex:1}}>
+              {Object.entries(sectionTime).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([s,v])=>(
+                <div key={s} style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{width:8,height:8,borderRadius:2,background:sectionColors[s]||'#7c8493',flexShrink:0}}/>
+                    <span style={{fontSize:12}}>{s}</span>
+                  </div>
+                  <span className="mono" style={{fontSize:12,color:'#7c8493'}}>{fmtMins(v)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{height:80}}/>
     </div>
   );
 }
 
 // ─── LOG TAB ─────────────────────────────────────────────────────────────────
-function LogTab({ dateKey, dayOffset, setDayOffset, dayLog, toggle, earnedXP, fulfilment, catBreakdown, accentColor, readOnly }) {
-  const r=36, circ=2*Math.PI*r;
+function LogTab({dateKey,dayOffset,setDayOffset,dayLog,toggle,earnedXP,fulfilment,catBreakdown,accentColor,readOnly}){
+  const r=36,circ=2*Math.PI*r;
   return (
     <div className="fade">
       <DayNav dateKey={dateKey} dayOffset={dayOffset} setDayOffset={setDayOffset}/>
-      {readOnly && (
-        <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid #2a2d35',marginBottom:16,fontSize:12,color:'#7c8493'}}>
-          <IC.Eye/> View only — this is not your data
-        </div>
-      )}
-      <div style={{background:'linear-gradient(135deg,#1f2228,#181a1f)',border:'1px solid #2a2d35',borderRadius:16,padding:'20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      {readOnly&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid #2a2d35',marginBottom:16,fontSize:12,color:'#7c8493'}}>{IC.Eye()} View only</div>}
+      <div style={{...card({padding:'20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'})}}>
         <div>
           <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:6}}>XP EARNED TODAY</div>
           <div style={{fontSize:38,fontWeight:700,color:accentColor,lineHeight:1}}>{earnedXP}</div>
@@ -316,9 +717,9 @@ function LogTab({ dateKey, dayOffset, setDayOffset, dayLog, toggle, earnedXP, fu
           <text x={45} y={45} textAnchor="middle" dominantBaseline="central" fill="#e7e9ee" fontSize={15} fontWeight="700" fontFamily="IBM Plex Mono">{fulfilment}%</text>
         </svg>
       </div>
-      {CATEGORIES.map(cat => {
+      {CATEGORIES.map(cat=>{
         const cb=catBreakdown.find(c=>c.name===cat.name);
-        return (
+        return(
           <div key={cat.name} style={{marginBottom:18}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}}>
               <div style={{fontWeight:600,fontSize:12,color:'#9aa1ad',textTransform:'uppercase',letterSpacing:0.8}}>{cat.name}</div>
@@ -327,22 +728,18 @@ function LogTab({ dateKey, dayOffset, setDayOffset, dayLog, toggle, earnedXP, fu
             <div style={{height:3,background:'#2a2d35',borderRadius:3,marginBottom:8,overflow:'hidden'}}>
               <div style={{height:'100%',width:`${cb.pct}%`,background:accentColor,borderRadius:3,transition:'width .3s'}}/>
             </div>
-            {cat.activities.map(act => {
-              const key=`${cat.name}::${act.name}`, checked=!!dayLog[key];
-              return (
-                <button key={act.name}
-                  onClick={()=>!readOnly&&toggle(cat.name,act.name,act.xp)}
-                  style={{
-                    display:'flex',alignItems:'center',justifyContent:'space-between',
-                    width:'100%',padding:'11px 14px',borderRadius:10,marginBottom:6,
-                    border:'1px solid '+(checked?accentColor+'66':'#2a2d35'),
-                    background:checked?accentColor+'18':'#1c1f26',
-                    textAlign:'left',transition:'all .12s',
-                    cursor:readOnly?'default':'pointer',opacity:readOnly?0.8:1
-                  }}>
+            {cat.activities.map(act=>{
+              const key=`${cat.name}::${act.name}`,checked=!!dayLog[key];
+              return(
+                <button key={act.name} onClick={()=>!readOnly&&toggle(cat.name,act.name,act.xp)} style={{
+                  display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%',
+                  padding:'11px 14px',borderRadius:10,marginBottom:6,
+                  border:'1px solid '+(checked?accentColor+'66':'#2a2d35'),
+                  background:checked?accentColor+'18':'#1c1f26',textAlign:'left',transition:'all .12s',cursor:readOnly?'default':'pointer'
+                }}>
                   <div style={{display:'flex',alignItems:'center',gap:10}}>
                     <div style={{width:18,height:18,borderRadius:5,border:'1.5px solid '+(checked?accentColor:'#444955'),background:checked?accentColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'#15171c'}}>
-                      {checked&&<IC.Check/>}
+                      {checked&&IC.Check()}
                     </div>
                     <span style={{fontSize:14,color:checked?'#e7e9ee':'#c5cad3'}}>{act.name}</span>
                   </div>
@@ -358,23 +755,248 @@ function LogTab({ dateKey, dayOffset, setDayOffset, dayLog, toggle, earnedXP, fu
   );
 }
 
-// ─── DASHBOARD TAB ────────────────────────────────────────────────────────────
-function DashboardTab({ last7, catBreakdown, earnedXP, fulfilment, accentColor }) {
-  const maxPct=Math.max(...last7.map(d=>d.pct),1);
-  const streak=(()=>{let s=0;for(let i=last7.length-1;i>=0;i--){if(last7[i].pct>0)s++;else break;}return s;})();
+// ─── TASKS TAB ────────────────────────────────────────────────────────────────
+function TasksTab({currentUser,tasks,onAddTask,onCompleteTask,onToggleSubtask,onDeleteTask,onToggleStar,readOnly,viewingUser,accentColor}){
+  const [activeSection,setActiveSection]=React.useState('All');
+  const [showDone,setShowDone]=React.useState(false);
+  const [timeModal,setTimeModal]=React.useState(null);
+  const userName=viewingUser?viewingUser.name:currentUser.name;
+  const myTasks=tasks[userName]||[];
+  const sectionColors={'Work':'#7eb8f7','Hobby Project':'#c4a0f5','Health':'#7ad6a0','Home':'#e8b34e','Finance':'#f3c873','People':'#f08b8b','Learning':'#a0d8f5','Upcoming Event':'#ffd700','Someday':'#9aa1ad'};
+
+  const filtered=myTasks.filter(t=>{
+    if(!showDone&&t.status==='done') return false;
+    if(showDone&&t.status!=='done') return false;
+    if(activeSection!=='All'&&t.section!==activeSection) return false;
+    return true;
+  });
+
+  const sectionCounts=TASK_SECTIONS.reduce((acc,s)=>{acc[s]=myTasks.filter(t=>t.status==='active'&&t.section===s).length;return acc;},{});
+
   return (
     <div className="fade">
+      {timeModal&&(
+        <TimeLogModal taskTitle={timeModal.title} onClose={()=>setTimeModal(null)}
+          onSubmit={(mins)=>{onCompleteTask(timeModal.id,mins);setTimeModal(null);}}/>
+      )}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <div style={{fontWeight:700,fontSize:18}}>{readOnly?`${userName}'s Tasks`:''}{!readOnly?'My Tasks':''}</div>
+        {!readOnly&&<button onClick={onAddTask} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,background:accentColor,color:'#15171c',fontSize:13,fontWeight:700,cursor:'pointer'}}>{IC.Plus(14)} New Task</button>}
+      </div>
+
+      {/* Section filter pills */}
+      <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+        {['All',...TASK_SECTIONS].map(s=>{
+          const cnt=s==='All'?myTasks.filter(t=>t.status==='active').length:(sectionCounts[s]||0);
+          const active=activeSection===s;
+          const col=sectionColors[s]||accentColor;
+          return(
+            <button key={s} onClick={()=>{setActiveSection(s);setShowDone(false);}} style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:'1px solid '+(active?col+'66':'#2a2d35'),background:active?col+'18':'transparent',color:active?col:'#9aa1ad',fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>
+              {s} {cnt>0&&<span style={{opacity:0.7}}>·{cnt}</span>}
+            </button>
+          );
+        })}
+        <button onClick={()=>setShowDone(v=>!v)} style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:'1px solid '+(showDone?'#7ad6a0':'#2a2d35'),background:showDone?'#7ad6a018':'transparent',color:showDone?'#7ad6a0':'#9aa1ad',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+          ✓ Done
+        </button>
+      </div>
+
+      {filtered.length===0&&(
+        <div style={{...card({padding:'30px',textAlign:'center'})}}>
+          <div style={{color:'#5f6470',fontSize:13}}>{showDone?'No completed tasks here.':'No active tasks in this section.'}</div>
+        </div>
+      )}
+
+      {filtered.map(task=>{
+        const col=sectionColors[task.section]||'#7c8493';
+        const done=task.status==='done';
+        const subDone=task.subtasks.filter(s=>s.done).length;
+        return(
+          <div key={task.id} style={{...card({padding:'14px 16px',marginBottom:10,borderColor:task.starred&&!done?accentColor+'44':'#2a2d35',opacity:done?0.6:1})}}>
+            <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+              {/* Complete button */}
+              {!readOnly&&!done&&(
+                <button onClick={()=>setTimeModal(task)} style={{width:20,height:20,borderRadius:5,border:`1.5px solid ${col}`,background:'transparent',flexShrink:0,marginTop:2,cursor:'pointer'}}/>
+              )}
+              {done&&<div style={{width:20,height:20,borderRadius:5,background:'#7ad6a0',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:2,color:'#15171c'}}>{IC.Check(11)}</div>}
+              {readOnly&&!done&&<div style={{width:20,height:20,borderRadius:5,border:`1.5px solid ${col}`,background:'transparent',flexShrink:0,marginTop:2}}/>}
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                  <span style={{fontSize:14,fontWeight:500,textDecoration:done?'line-through':'none',color:done?'#5f6470':'#e7e9ee'}}>{task.title}</span>
+                  {task.starred&&<span style={{color:'#e8b34e'}}>{IC.Star(11,'#e8b34e')}</span>}
+                </div>
+                {task.notes&&<div style={{fontSize:12,color:'#7c8493',marginBottom:6}}>{task.notes}</div>}
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                  <span style={pill(col)}>{task.section}</span>
+                  {task.dueDate&&<span className="mono" style={{fontSize:11,color:'#7c8493'}}>{IC.Today(11)} {fmtDateShort(task.dueDate)}</span>}
+                  {task.estMins>0&&<span className="mono" style={{fontSize:11,color:'#7c8493'}}>{IC.Clock()} est {fmtMins(task.estMins)}</span>}
+                  {task.actMins>0&&<span className="mono" style={{fontSize:11,color:'#7ad6a0'}}>{IC.Clock()} actual {fmtMins(task.actMins)}</span>}
+                </div>
+                {/* Subtasks */}
+                {task.subtasks.length>0&&(
+                  <div style={{marginTop:10}}>
+                    <div className="mono" style={{fontSize:10,color:'#5f6470',marginBottom:6}}>{subDone}/{task.subtasks.length} checklist items</div>
+                    <div style={{height:3,background:'#2a2d35',borderRadius:2,marginBottom:8,overflow:'hidden'}}>
+                      <div style={{height:'100%',width:`${task.subtasks.length?subDone/task.subtasks.length*100:0}%`,background:'#7ad6a0',transition:'width .3s'}}/>
+                    </div>
+                    {task.subtasks.map(st=>(
+                      <div key={st.id} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                        <button onClick={()=>!readOnly&&onToggleSubtask(task.id,st.id,task.user)} style={{
+                          width:15,height:15,borderRadius:3,border:'1.5px solid '+(st.done?'#7ad6a0':'#444955'),
+                          background:st.done?'#7ad6a0':'transparent',display:'flex',alignItems:'center',justifyContent:'center',
+                          flexShrink:0,color:'#15171c',cursor:readOnly?'default':'pointer'
+                        }}>{st.done&&IC.Check(9)}</button>
+                        <span style={{fontSize:12,color:st.done?'#5f6470':'#c5cad3',textDecoration:st.done?'line-through':'none'}}>{st.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {!readOnly&&(
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  <button onClick={()=>onToggleStar(task.id,task.user)} style={{color:task.starred?'#e8b34e':'#5f6470'}}>{IC.Star(13,task.starred?'#e8b34e':'none')}</button>
+                  <button onClick={()=>onDeleteTask(task.id,task.user)} style={{color:'#f08b8b',opacity:0.6}}>{IC.Trash()}</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      <div style={{height:80}}/>
+    </div>
+  );
+}
+
+// ─── MEASUREMENTS TAB ─────────────────────────────────────────────────────────
+function MeasurementsTab({currentUser,measurements,targets,onLogMeasurements,onSaveTargets,accentColor,readOnly,viewingUser}){
+  const [showLogModal,setShowLogModal]=React.useState(false);
+  const [showTargetModal,setShowTargetModal]=React.useState(false);
+  const [selectedArea,setSelectedArea]=React.useState('Weight');
+  const userName=viewingUser?viewingUser.name:currentUser.name;
+  const userM=measurements[userName]||{};
+  const userT=targets[userName]||{};
+
+  // get sorted dates and latest value per area
+  const sortedDates=Object.keys(userM).sort();
+  const latestVals=MEASUREMENT_AREAS.reduce((acc,area)=>{
+    let val=null,from=null;
+    for(const d of sortedDates){if(userM[d]?.[area.name]!=null){val=userM[d][area.name];from=d;}}
+    acc[area.name]={val,from};
+    return acc;
+  },{});
+
+  // sparkline data for selected area
+  const sparkData=sortedDates.map(d=>userM[d]?.[selectedArea]!=null?{d,v:userM[d][selectedArea]}:null).filter(Boolean);
+
+  return (
+    <div className="fade">
+      {showLogModal&&<MeasLogModal lastVals={Object.fromEntries(MEASUREMENT_AREAS.map(a=>[a.name,latestVals[a.name]?.val]))} onClose={()=>setShowLogModal(false)} onSave={(date,entries)=>{onLogMeasurements(userName,date,entries);setShowLogModal(false);}}/>}
+      {showTargetModal&&<TargetModal currentTargets={userT} onClose={()=>setShowTargetModal(false)} onSave={(vals)=>{onSaveTargets(userName,vals);setShowTargetModal(false);}}/>}
+
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <div style={{fontWeight:700,fontSize:18}}>Measurements</div>
+        {!readOnly&&(
+          <div style={{display:'flex',gap:8}}>
+            <button onClick={()=>setShowTargetModal(true)} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:10,border:'1px solid #2a2d35',background:'transparent',color:'#9aa1ad',fontSize:12,cursor:'pointer'}}>{IC.Target()} Targets</button>
+            <button onClick={()=>setShowLogModal(true)} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:10,background:accentColor,color:'#15171c',fontSize:12,fontWeight:700,cursor:'pointer'}}>{IC.Plus(12)} Log</button>
+          </div>
+        )}
+      </div>
+
+      {/* Area selector */}
+      <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4,marginBottom:16}}>
+        {MEASUREMENT_AREAS.map(area=>(
+          <button key={area.name} onClick={()=>setSelectedArea(area.name)} style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:'1px solid '+(selectedArea===area.name?accentColor+'66':'#2a2d35'),background:selectedArea===area.name?accentColor+'18':'transparent',color:selectedArea===area.name?accentColor:'#9aa1ad',fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>
+            {area.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Sparkline for selected area */}
+      <div style={{...card({padding:'16px',marginBottom:16})}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+          <div style={{fontWeight:600,fontSize:15}}>{selectedArea}</div>
+          <div style={{display:'flex',gap:12,alignItems:'center'}}>
+            {userT[selectedArea]!=null&&<div className="mono" style={{fontSize:12,color:'#e8b34e'}}>target: {userT[selectedArea]}</div>}
+            {latestVals[selectedArea]?.val!=null&&<div className="mono" style={{fontSize:12,color:accentColor}}>current: {latestVals[selectedArea].val}</div>}
+          </div>
+        </div>
+        {sparkData.length>1?(
+          <div style={{overflowX:'auto'}}>
+            <Sparkline data={sparkData} color={accentColor} width={Math.max(280,sparkData.length*40)} height={80} target={userT[selectedArea]??null}/>
+          </div>
+        ):(
+          <div style={{textAlign:'center',color:'#5f6470',fontSize:13,padding:'20px 0'}}>Log at least 2 data points to see the graph</div>
+        )}
+        {sparkData.length>0&&(
+          <div style={{display:'flex',gap:8,overflowX:'auto',marginTop:10,paddingTop:10,borderTop:'1px solid #2a2d35'}}>
+            {sparkData.map(d=>(
+              <div key={d.d} style={{flexShrink:0,textAlign:'center'}}>
+                <div className="mono" style={{fontSize:12,fontWeight:600,color:accentColor}}>{d.v}</div>
+                <div className="mono" style={{fontSize:9,color:'#5f6470'}}>{fmtDateShort(d.d)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* All areas summary */}
+      <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1,marginBottom:10}}>ALL MEASUREMENTS</div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        {MEASUREMENT_AREAS.map(area=>{
+          const l=latestVals[area.name];
+          const t=userT[area.name];
+          const diff=l?.val!=null&&t!=null?+(l.val-t).toFixed(2):null;
+          const allVals=sortedDates.map(d=>userM[d]?.[area.name]).filter(v=>v!=null);
+          const prev=allVals.length>1?allVals[allVals.length-2]:null;
+          const change=l?.val!=null&&prev!=null?+(l.val-prev).toFixed(2):null;
+          return(
+            <div key={area.name} onClick={()=>setSelectedArea(area.name)} style={{...card({padding:'12px',cursor:'pointer',borderColor:selectedArea===area.name?accentColor+'44':'#2a2d35'})}}>
+              <div style={{fontSize:11,color:'#7c8493',marginBottom:4}}>{area.name}</div>
+              <div style={{fontSize:20,fontWeight:700,color:l?.val!=null?accentColor:'#5f6470'}}>{l?.val??'—'}</div>
+              <div style={{display:'flex',gap:6,marginTop:4,flexWrap:'wrap'}}>
+                {change!=null&&<span className="mono" style={{fontSize:10,color:change>0?'#f08b8b':'#7ad6a0'}}>{change>0?'+':''}{change}</span>}
+                {t!=null&&<span className="mono" style={{fontSize:10,color:'#5f6470'}}>↯{t}</span>}
+                {diff!=null&&<span className="mono" style={{fontSize:10,color:Math.abs(diff)<1?'#7ad6a0':'#7c8493'}}>{diff===0?'on target':diff>0?`+${diff} over`:`${diff} under`}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{height:80}}/>
+    </div>
+  );
+}
+
+// ─── STATS TAB ────────────────────────────────────────────────────────────────
+function StatsTab({currentUser,last7,catBreakdown,earnedXP,fulfilment,tasks,accentColor,allLogs}){
+  const maxPct=Math.max(...last7.map(d=>d.pct),1);
+  const streak=(()=>{let s=0;for(let i=last7.length-1;i>=0;i--){if(last7[i].pct>0)s++;else break;}return s;})();
+  const myTasks=tasks[currentUser.name]||[];
+  const doneTasks=myTasks.filter(t=>t.status==='done'&&t.actMins>0);
+  const totalActual=doneTasks.reduce((s,t)=>s+t.actMins,0);
+  const totalEst=doneTasks.reduce((s,t)=>s+t.estMins,0);
+  const sectionColors={'Work':'#7eb8f7','Hobby Project':'#c4a0f5','Health':'#7ad6a0','Home':'#e8b34e','Finance':'#f3c873','People':'#f08b8b','Learning':'#a0d8f5','Upcoming Event':'#ffd700','Someday':'#9aa1ad'};
+  const sectionTime={};
+  doneTasks.forEach(t=>{sectionTime[t.section]=(sectionTime[t.section]||0)+t.actMins;});
+
+  return (
+    <div className="fade">
+      <div style={{fontWeight:700,fontSize:18,marginBottom:20}}>Your Stats</div>
+      {/* Stat cards */}
       <div style={{display:'flex',gap:10,marginBottom:20}}>
-        {[{label:'TODAY XP',value:earnedXP,sub:`/ ${TOTAL_XP}`},{label:'FULFILMENT',value:`${fulfilment}%`,sub:'today'},{label:'STREAK',value:`${streak}d`,sub:'days'}].map(s=>(
-          <div key={s.label} style={{flex:1,background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:14,padding:'14px 12px'}}>
+        {[{label:'TODAY XP',value:earnedXP,sub:`/ ${TOTAL_XP}`},{label:'FULFILMENT',value:`${fulfilment}%`,sub:'today'},{label:'STREAK',value:`${streak}d`,sub:'active'}].map(s=>(
+          <div key={s.label} style={{flex:1,...card({padding:'14px 12px'})}}>
             <div className="mono" style={{fontSize:10,color:'#7c8493',letterSpacing:1,marginBottom:6}}>{s.label}</div>
-            <div style={{fontSize:22,fontWeight:700,color:accentColor}}>{s.value}</div>
+            <div style={{fontSize:20,fontWeight:700,color:accentColor}}>{s.value}</div>
             <div className="mono" style={{fontSize:10,color:'#5f6470',marginTop:2}}>{s.sub}</div>
           </div>
         ))}
       </div>
-      <div style={{background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:16,padding:'18px 16px',marginBottom:20}}>
-        <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:16}}>LAST 7 DAYS</div>
+
+      {/* 7-day chart */}
+      <div style={{...card({padding:'18px',marginBottom:16})}}>
+        <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:16}}>LAST 7 DAYS — FULFILMENT</div>
         <div style={{display:'flex',alignItems:'flex-end',gap:8,height:100}}>
           {last7.map(d=>(
             <div key={d.key} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:5}}>
@@ -385,91 +1007,123 @@ function DashboardTab({ last7, catBreakdown, earnedXP, fulfilment, accentColor }
           ))}
         </div>
       </div>
-      <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:12}}>CATEGORY BREAKDOWN</div>
-      {catBreakdown.map(c=>(
-        <div key={c.name} style={{marginBottom:12}}>
-          <div style={{display:'flex',justifyContent:'space-between',marginBottom:5,fontSize:13}}>
-            <span style={{fontWeight:500}}>{c.name}</span>
-            <span className="mono" style={{fontSize:12,color:'#7c8493'}}>{c.earned}/{c.total} · {c.pct}%</span>
-          </div>
-          <div style={{height:6,borderRadius:4,background:'#2a2d35',overflow:'hidden'}}>
-            <div style={{height:'100%',width:`${c.pct}%`,background:accentColor,borderRadius:4,transition:'width .4s'}}/>
-          </div>
-        </div>
-      ))}
-      <div style={{height:80}}/>
-    </div>
-  );
-}
 
-// ─── MEASUREMENTS TAB ─────────────────────────────────────────────────────────
-function MeasurementsTab({ dateKey, dayOffset, setDayOffset, measurements, latestM, saveMeasurement, accentColor, readOnly }) {
-  const todayVals=measurements[dateKey]||{};
-  return (
-    <div className="fade">
-      <DayNav dateKey={dateKey} dayOffset={dayOffset} setDayOffset={setDayOffset}/>
-      {readOnly && (
-        <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:'1px solid #2a2d35',marginBottom:16,fontSize:12,color:'#7c8493'}}>
-          <IC.Eye/> View only — this is not your data
-        </div>
-      )}
-      <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:14}}>BODY MEASUREMENTS (CM)</div>
-      {MEASUREMENT_AREAS.map(area=>{
-        const l=latestM[area.name]||{val:area.base,from:'baseline'};
-        const current=todayVals[area.name];
-        const diff=current!=null?+(current-l.val).toFixed(2):null;
-        return (
-          <div key={area.name} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:12,padding:'12px 14px',marginBottom:8}}>
-            <div>
-              <div style={{fontSize:14,fontWeight:600}}>{area.name}</div>
-              <div style={{fontSize:11,color:'#7c8493',marginTop:2}}>{area.note}</div>
-              <div className="mono" style={{fontSize:11,color:'#5f6470',marginTop:2}}>last: {l.val} cm · {l.from==='baseline'?'baseline':fmtDate(l.from)}</div>
+      {/* Category breakdown */}
+      <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:12}}>CATEGORY BREAKDOWN</div>
+      <div style={{...card({padding:'16px',marginBottom:16})}}>
+        {catBreakdown.map(c=>(
+          <div key={c.name} style={{marginBottom:12}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:5,fontSize:13}}>
+              <span style={{fontWeight:500}}>{c.name}</span>
+              <span className="mono" style={{fontSize:12,color:'#7c8493'}}>{c.earned}/{c.total} · {c.pct}%</span>
             </div>
-            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}}>
-              <input type="number" step="0.1" placeholder={String(l.val)} value={current??''}
-                onChange={e=>!readOnly&&saveMeasurement(area.name,e.target.value)}
-                readOnly={readOnly}
-                className="mono"
-                style={{width:80,padding:'8px 10px',borderRadius:8,border:'1px solid '+(readOnly?'#1c1f26':'#2a2d35'),background:'#15171c',color:'#e7e9ee',fontSize:14,textAlign:'right',outline:'none',cursor:readOnly?'default':'text'}}/>
-              {diff!=null&&diff!==0&&<span className="mono" style={{fontSize:11,color:diff>0?'#7ad6a0':'#f08b8b'}}>{diff>0?'+':''}{diff}</span>}
+            <div style={{height:5,borderRadius:4,background:'#2a2d35',overflow:'hidden'}}>
+              <div style={{height:'100%',width:`${c.pct}%`,background:accentColor,borderRadius:4,transition:'width .4s'}}/>
             </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
+
+      {/* Time analytics */}
+      {Object.keys(sectionTime).length>0&&(
+        <>
+          <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:1.5,marginBottom:12}}>TIME ANALYTICS — ALL TIME</div>
+          <div style={{...card({padding:'16px',marginBottom:16})}}>
+            <div style={{display:'flex',gap:16,alignItems:'center',marginBottom:16}}>
+              <Donut size={110} data={Object.entries(sectionTime).map(([s,v])=>({label:s,val:v,color:sectionColors[s]||'#7c8493'}))}/>
+              <div style={{flex:1}}>
+                <div className="mono" style={{fontSize:11,color:'#7c8493',marginBottom:8}}>TOTAL: {fmtMins(totalActual)}</div>
+                {totalEst>0&&<div className="mono" style={{fontSize:11,color:'#5f6470',marginBottom:12}}>EST: {fmtMins(totalEst)} · {Math.round(totalActual/totalEst*100)}% accuracy</div>}
+                {Object.entries(sectionTime).sort((a,b)=>b[1]-a[1]).map(([s,v])=>(
+                  <div key={s} style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:2,background:sectionColors[s]||'#7c8493',flexShrink:0}}/>
+                      <span style={{fontSize:12}}>{s}</span>
+                    </div>
+                    <span className="mono" style={{fontSize:12,color:'#7c8493'}}>{fmtMins(v)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       <div style={{height:80}}/>
     </div>
   );
 }
 
 // ─── LEADERBOARD TAB ─────────────────────────────────────────────────────────
-function LeaderboardTab({ allLogs }) {
-  const dateKey = getDateKey(0);
-  const scores = USERS.map(u => {
-    const dl = (allLogs[u.name]||{})[dateKey]||{};
-    let xp=0;
-    CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dl[`${c.name}::${a.name}`])xp+=a.xp;}));
-    return { ...u, xp, pct: TOTAL_XP?Math.round((xp/TOTAL_XP)*100):0 };
+function LeaderboardTab({allLogs,challenges,currentUser,onSetChallenge}){
+  const dateKey=getDateKey(0);
+  const [showChallengeInput,setShowChallengeInput]=React.useState(false);
+  const [challengeText,setChallengeText]=React.useState('');
+  const challenge=challenges[dateKey];
+  const scores=USERS.map(u=>{
+    const dl=(allLogs[u.name]||{})[dateKey]||{};
+    let xp=0;CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dl[`${c.name}::${a.name}`])xp+=a.xp;}));
+    return{...u,xp,pct:TOTAL_XP?Math.round((xp/TOTAL_XP)*100):0};
   }).sort((a,b)=>b.xp-a.xp);
 
   return (
     <div className="fade">
-      <div style={{fontWeight:700,fontSize:18,marginBottom:4}}>Leaderboard</div>
-      <div className="mono" style={{fontSize:11,color:'#7c8493',marginBottom:24}}>{fmtDate(dateKey)} — today</div>
-      {scores.map((u,i)=>(
-        <div key={u.name} style={{display:'flex',alignItems:'center',gap:14,background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:14,padding:'14px 16px',marginBottom:10}}>
-          <div className="mono" style={{fontSize:20,fontWeight:700,color:i===0?'#e8b34e':i===1?'#9aa1ad':i===2?'#cd7f32':'#5f6470',width:28,textAlign:'center'}}>
-            {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
+      <div style={{fontWeight:700,fontSize:18,marginBottom:4}}>Squad</div>
+      <div className="mono" style={{fontSize:11,color:'#7c8493',marginBottom:20}}>{fmtDate(dateKey)} · today</div>
+
+      {/* Challenge */}
+      <div style={{...card({padding:'16px',marginBottom:20,borderColor:challenge?.prompt?'#e8b34e33':'#2a2d35'})}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          {IC.Camera()}<div style={{fontWeight:600,fontSize:14}}>Picture a Day</div>
+          {currentUser.isAdmin&&(
+            <button onClick={()=>setShowChallengeInput(v=>!v)} style={{marginLeft:'auto',...pill('#7c8493',{cursor:'pointer'})}}>
+              {IC.Edit()} {challenge?.prompt?'Edit':'Set'}
+            </button>
+          )}
+        </div>
+        {showChallengeInput&&currentUser.isAdmin&&(
+          <div style={{display:'flex',gap:8,marginBottom:12}}>
+            <input placeholder="Today's picture challenge..." value={challengeText} onChange={e=>setChallengeText(e.target.value)} style={input({flex:1,fontSize:13})}/>
+            <button onClick={()=>{if(challengeText.trim()){onSetChallenge(dateKey,challengeText.trim());setChallengeText('');setShowChallengeInput(false);}}} style={{padding:'8px 14px',borderRadius:10,background:'#e8b34e',color:'#15171c',fontWeight:700,fontSize:13,cursor:'pointer'}}>Set</button>
           </div>
-          <div style={{flex:1}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <div style={{width:8,height:8,borderRadius:'50%',background:u.color}}/>
-                <span style={{fontWeight:600,fontSize:15}}>{u.name}</span>
-              </div>
-              <span className="mono" style={{fontSize:13,color:u.color}}>{u.xp} XP · {u.pct}%</span>
+        )}
+        {challenge?.prompt?(
+          <>
+            <div style={{fontSize:14,color:'#c5cad3',marginBottom:12,fontStyle:'italic'}}>"{challenge.prompt}"</div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {USERS.map(u=>{
+                const done=challenge.completedBy?.includes(u.name);
+                const isMe=u.name===currentUser.name;
+                return(
+                  <button key={u.name} onClick={()=>isMe&&!done&&onSetChallenge(dateKey,challenge.prompt,u.name)} style={{...pill(done?u.color:'#5f6470',{cursor:isMe&&!done?'pointer':'default'})}}>
+                    {u.name} {done?'✓':'○'}
+                  </button>
+                );
+              })}
             </div>
-            <div style={{height:5,background:'#2a2d35',borderRadius:3,overflow:'hidden'}}>
-              <div style={{height:'100%',width:`${u.pct}%`,background:u.color,borderRadius:3,transition:'width .5s ease'}}/>
+          </>
+        ):(
+          <div style={{color:'#5f6470',fontSize:13}}>{currentUser.isAdmin?'No challenge set for today yet. Set one above.':'No challenge set for today.'}</div>
+        )}
+      </div>
+
+      {/* Leaderboard */}
+      {scores.map((u,i)=>(
+        <div key={u.name} style={{...card({padding:'14px 16px',marginBottom:10})}}>
+          <div style={{display:'flex',alignItems:'center',gap:14}}>
+            <div className="mono" style={{fontSize:18,fontWeight:700,color:i===0?'#e8b34e':i===1?'#9aa1ad':i===2?'#cd7f32':'#5f6470',width:28,textAlign:'center'}}>
+              {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:u.color}}/>
+                  <span style={{fontWeight:600,fontSize:15}}>{u.name}</span>
+                </div>
+                <span className="mono" style={{fontSize:13,color:u.color}}>{u.xp} XP · {u.pct}%</span>
+              </div>
+              <div style={{height:5,background:'#2a2d35',borderRadius:3,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${u.pct}%`,background:u.color,borderRadius:3,transition:'width .5s ease'}}/>
+              </div>
             </div>
           </div>
         </div>
@@ -480,215 +1134,277 @@ function LeaderboardTab({ allLogs }) {
 }
 
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
-function App() {
-  const [currentUser, setCurrentUser] = React.useState(()=>{
-    try { const s=localStorage.getItem('ql_user'); return s?JSON.parse(s):null; } catch{ return null; }
-  });
-  const [viewingUser, setViewingUser] = React.useState(null); // null = self
-  const [tab, setTab] = React.useState('log');
-  const [dayOffset, setDayOffset] = React.useState(0);
-  const [allLogs, setAllLogs] = React.useState({});
-  const [allMeasurements, setAllMeasurements] = React.useState({});
-  const [loading, setLoading] = React.useState(true);
-  const [syncing, setSyncing] = React.useState(false);
-  const [error, setError] = React.useState(null);
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth<640);
-  const [showUserPicker, setShowUserPicker] = React.useState(false);
+function App(){
+  const [currentUser,setCurrentUser]=React.useState(()=>{try{const s=localStorage.getItem('ql_user');return s?JSON.parse(s):null;}catch{return null;}});
+  const [viewingUser,setViewingUser]=React.useState(null);
+  const [tab,setTab]=React.useState('home');
+  const [dayOffset,setDayOffset]=React.useState(0);
 
-  React.useEffect(()=>{
-    const h=()=>setIsMobile(window.innerWidth<640);
-    window.addEventListener('resize',h); return ()=>window.removeEventListener('resize',h);
-  },[]);
+  // data state
+  const [allLogs,setAllLogs]=React.useState({});
+  const [measurements,setMeasurements]=React.useState({});
+  const [targets,setTargets]=React.useState({});
+  const [tasks,setTasks]=React.useState({});
+  const [challenges,setChallenges]=React.useState({});
 
-  function handleLogin(user) {
-    localStorage.setItem('ql_user', JSON.stringify(user));
-    setCurrentUser(user);
-    setViewingUser(null);
-  }
-  function handleLogout() {
-    localStorage.removeItem('ql_user');
-    setCurrentUser(null);
-    setViewingUser(null);
-  }
+  const [loading,setLoading]=React.useState(true);
+  const [syncing,setSyncing]=React.useState(false);
+  const [error,setError]=React.useState(null);
+  const [isMobile,setIsMobile]=React.useState(window.innerWidth<640);
+  const [showUserPicker,setShowUserPicker]=React.useState(false);
+  const [showAddTask,setShowAddTask]=React.useState(false);
+  const [addTaskSection,setAddTaskSection]=React.useState(null);
 
-  const activeUser = viewingUser || currentUser;
-  const readOnly = viewingUser !== null;
-  const accentColor = USERS.find(u=>u.name===activeUser?.name)?.color || '#e8b34e';
+  React.useEffect(()=>{const h=()=>setIsMobile(window.innerWidth<640);window.addEventListener('resize',h);return()=>window.removeEventListener('resize',h);},[]);
 
-  const loadData = React.useCallback(async()=>{
-    try {
-      setLoading(true); setError(null);
-      const [lr,mr]=await Promise.all([readSheet('Daily Log'),readSheet('Measurements')]);
+  function handleLogin(user){localStorage.setItem('ql_user',JSON.stringify(user));setCurrentUser(user);setViewingUser(null);}
+  function handleLogout(){localStorage.removeItem('ql_user');setCurrentUser(null);setViewingUser(null);}
+
+  const activeUser=viewingUser||currentUser;
+  const readOnly=viewingUser!==null;
+  const accentColor=USERS.find(u=>u.name===activeUser?.name)?.color||'#e8b34e';
+
+  const loadData=React.useCallback(async()=>{
+    try{
+      setLoading(true);setError(null);
+      const [lr,mr,tr,taskR,stR,chR]=await Promise.all([
+        readSheet('Daily Log'),readSheet('Measurements'),readSheet('Targets'),
+        readSheet('Tasks'),readSheet('Subtasks'),readSheet('Challenge')
+      ]);
       setAllLogs(parseLogRows(lr));
-      setAllMeasurements(parseMeasRows(mr));
-    } catch(e){ setError('Could not reach Google Sheets.'); }
-    finally { setLoading(false); }
+      setMeasurements(parseMeasRows(mr));
+      setTargets(parseTargetRows(tr));
+      const parsedTasks=parseTaskRows(taskR);
+      parseSubtaskRows(stR,parsedTasks);
+      setTasks(parsedTasks);
+      setChallenges(parseChallengeRows(chR));
+    }catch(e){setError('Could not reach Google Sheets. Check connection.');}
+    finally{setLoading(false);}
   },[]);
 
-  React.useEffect(()=>{ if(currentUser) loadData(); },[currentUser,loadData]);
+  React.useEffect(()=>{if(currentUser)loadData();},[currentUser,loadData]);
 
-  const dateKey = getDateKey(dayOffset);
-  const userLogs = (allLogs[activeUser?.name]||{});
-  const dayLog = userLogs[dateKey]||{};
-  const userMeasurements = (allMeasurements[activeUser?.name]||{});
+  // derived
+  const dateKey=getDateKey(dayOffset);
+  const userLogs=allLogs[activeUser?.name]||{};
+  const dayLog=userLogs[dateKey]||{};
+  const earnedXP=React.useMemo(()=>{let s=0;CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dayLog[`${c.name}::${a.name}`])s+=a.xp;}));return s;},[dayLog]);
+  const fulfilment=TOTAL_XP?Math.round((earnedXP/TOTAL_XP)*100):0;
+  const catBreakdown=React.useMemo(()=>CATEGORIES.map(c=>{const total=c.activities.reduce((s,a)=>s+a.xp,0);const earned=c.activities.reduce((s,a)=>s+(dayLog[`${c.name}::${a.name}`]?a.xp:0),0);return{name:c.name,total,earned,pct:total?Math.round((earned/total)*100):0};}),[dayLog]);
+  const last7=React.useMemo(()=>Array.from({length:7},(_,i)=>{const k=getDateKey(i-6);const dl=(userLogs[k]||{});let s=0;CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dl[`${c.name}::${a.name}`])s+=a.xp;}));return{key:k,pct:TOTAL_XP?Math.round((s/TOTAL_XP)*100):0};}),[userLogs]);
 
-  const earnedXP = React.useMemo(()=>{
-    let s=0; CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dayLog[`${c.name}::${a.name}`])s+=a.xp;})); return s;
-  },[dayLog]);
-  const fulfilment = TOTAL_XP?Math.round((earnedXP/TOTAL_XP)*100):0;
-
-  const catBreakdown = React.useMemo(()=>CATEGORIES.map(c=>{
-    const total=c.activities.reduce((s,a)=>s+a.xp,0);
-    const earned=c.activities.reduce((s,a)=>s+(dayLog[`${c.name}::${a.name}`]?a.xp:0),0);
-    return {name:c.name,total,earned,pct:total?Math.round((earned/total)*100):0};
-  }),[dayLog]);
-
-  const last7 = React.useMemo(()=>Array.from({length:7},(_,i)=>{
-    const k=getDateKey(i-6); const dl=(userLogs[k]||{}); let s=0;
-    CATEGORIES.forEach(c=>c.activities.forEach(a=>{if(dl[`${c.name}::${a.name}`])s+=a.xp;}));
-    return {key:k,pct:TOTAL_XP?Math.round((s/TOTAL_XP)*100):0};
-  }),[userLogs]);
-
-  const latestM = React.useMemo(()=>{
-    const dates=Object.keys(userMeasurements).sort();
-    return MEASUREMENT_AREAS.reduce((acc,area)=>{
-      let val=area.base,from='baseline';
-      for(const d of dates){if(userMeasurements[d]?.[area.name]!=null){val=userMeasurements[d][area.name];from=d;}}
-      acc[area.name]={val,from}; return acc;
-    },{});
-  },[userMeasurements]);
-
-  const toggle = React.useCallback(async(catName,actName,xp)=>{
-    if(readOnly) return;
-    const key=`${catName}::${actName}`, uname=currentUser.name;
-    const current=!!((allLogs[uname]||{})[dateKey]||{})[key], next=!current;
+  // actions
+  const toggle=React.useCallback(async(catName,actName,xp)=>{
+    if(readOnly)return;
+    const key=`${catName}::${actName}`,uname=currentUser.name;
+    const current=!!((allLogs[uname]||{})[dateKey]||{})[key],next=!current;
     setAllLogs(prev=>({...prev,[uname]:{...(prev[uname]||{}),[dateKey]:{...((prev[uname]||{})[dateKey]||{}),[key]:next}}}));
     setSyncing(true);
-    try { await appendRow('Daily Log',[dateKey,uname,catName,actName,xp,next?'TRUE':'FALSE']); }
-    catch(e){ setAllLogs(prev=>({...prev,[uname]:{...(prev[uname]||{}),[dateKey]:{...((prev[uname]||{})[dateKey]||{}),[key]:current}}})); setError('Sync failed.'); }
-    finally { setSyncing(false); }
+    try{await appendRow('Daily Log',[dateKey,uname,catName,actName,xp,next?'TRUE':'FALSE']);}
+    catch(e){setAllLogs(prev=>({...prev,[uname]:{...(prev[uname]||{}),[dateKey]:{...((prev[uname]||{})[dateKey]||{}),[key]:current}}}));setError('Sync failed.');}
+    finally{setSyncing(false);}
   },[readOnly,currentUser,allLogs,dateKey]);
 
-  const saveMeasurement = React.useCallback(async(areaName,value)=>{
-    if(readOnly) return;
-    const v=value===''?null:parseFloat(value), uname=currentUser.name;
-    setAllMeasurements(prev=>{
-      const day={...((prev[uname]||{})[dateKey]||{})};
-      if(v==null) delete day[areaName]; else day[areaName]=v;
-      return {...prev,[uname]:{...(prev[uname]||{}),[dateKey]:day}};
+  const addTask=React.useCallback(async(data)=>{
+    const uname=currentUser.name;
+    const id=uid();
+    const now=new Date().toISOString();
+    const task={id,user:uname,title:data.title,notes:data.notes||'',section:data.section,dueDate:data.dueDate||'',estMins:data.estMins||0,actMins:0,starred:data.starred||false,status:'active',completedAt:'',createdAt:now,subtasks:data.subtasks||[]};
+    setTasks(prev=>({...prev,[uname]:[...(prev[uname]||[]),task]}));
+    setShowAddTask(false);
+    setSyncing(true);
+    try{
+      await appendRow('Tasks',[id,uname,data.title,data.notes||'',data.section,data.dueDate||'',data.estMins||0,'',data.starred?'TRUE':'FALSE','active','',now]);
+      for(const st of (data.subtasks||[])){await appendRow('Subtasks',[st.id,id,uname,st.title,'FALSE']);}
+    }catch(e){setError('Task save failed.');}
+    finally{setSyncing(false);}
+  },[currentUser]);
+
+  const completeTask=React.useCallback(async(taskId,actMins)=>{
+    const uname=currentUser.name;
+    const now=new Date().toISOString();
+    setTasks(prev=>{const ut=[...(prev[uname]||[])];const idx=ut.findIndex(t=>t.id===taskId);if(idx>-1)ut[idx]={...ut[idx],status:'done',actMins,completedAt:now};return{...prev,[uname]:ut};});
+    setSyncing(true);
+    try{
+      // re-read tasks to find row, then update — for simplicity append a completion log
+      await appendRow('Tasks',[taskId+'-done',uname,'','','','','',actMins,'','done',now,'']);
+    }catch(e){setError('Complete failed.');}
+    finally{setSyncing(false);}
+  },[currentUser]);
+
+  const toggleSubtask=React.useCallback(async(taskId,subtaskId,uname)=>{
+    setTasks(prev=>{
+      const ut=[...(prev[uname]||[])];
+      const tIdx=ut.findIndex(t=>t.id===taskId);
+      if(tIdx>-1){const st=[...ut[tIdx].subtasks];const sIdx=st.findIndex(s=>s.id===subtaskId);if(sIdx>-1)st[sIdx]={...st[sIdx],done:!st[sIdx].done};ut[tIdx]={...ut[tIdx],subtasks:st};}
+      return{...prev,[uname]:ut};
     });
-    if(v!=null){ setSyncing(true); try{ await appendRow('Measurements',[dateKey,uname,areaName,v]); }catch(e){setError('Sync failed.');}finally{setSyncing(false);} }
-  },[readOnly,currentUser,dateKey]);
+    setSyncing(true);
+    try{await appendRow('Subtasks',[subtaskId+'-toggle',taskId,uname,'','TOGGLE']);}
+    catch(e){setError('Subtask update failed.');}
+    finally{setSyncing(false);}
+  },[]);
+
+  const deleteTask=React.useCallback((taskId,uname)=>{
+    setTasks(prev=>({...prev,[uname]:(prev[uname]||[]).filter(t=>t.id!==taskId)}));
+  },[]);
+
+  const toggleStar=React.useCallback((taskId,uname)=>{
+    setTasks(prev=>{const ut=[...(prev[uname]||[])];const idx=ut.findIndex(t=>t.id===taskId);if(idx>-1)ut[idx]={...ut[idx],starred:!ut[idx].starred};return{...prev,[uname]:ut};});
+  },[]);
+
+  const logMeasurements=React.useCallback(async(uname,date,entries)=>{
+    setMeasurements(prev=>{
+      const day={...((prev[uname]||{})[date]||{})};
+      entries.forEach(([area,val])=>{day[area]=parseFloat(val);});
+      return{...prev,[uname]:{...(prev[uname]||{}),[date]:day}};
+    });
+    setSyncing(true);
+    try{for(const [area,val] of entries){await appendRow('Measurements',[date,uname,area,parseFloat(val),'']);}}
+    catch(e){setError('Measurement save failed.');}
+    finally{setSyncing(false);}
+  },[]);
+
+  const saveTargets=React.useCallback(async(uname,vals)=>{
+    const entries=Object.entries(vals).filter(([,v])=>v!=='');
+    setTargets(prev=>({...prev,[uname]:{...(prev[uname]||{}),...Object.fromEntries(entries.map(([k,v])=>[k,parseFloat(v)||null]))}}));
+    setSyncing(true);
+    try{
+      const rows=[['User','Area','Target'],...entries.map(([area,val])=>[uname,area,parseFloat(val)])];
+      // append new targets (simple approach)
+      for(const [area,val] of entries){await appendRow('Targets',[uname,area,parseFloat(val)]);}
+    }catch(e){setError('Target save failed.');}
+    finally{setSyncing(false);}
+  },[]);
+
+  const setChallenge=React.useCallback(async(date,prompt,completedByUser)=>{
+    setChallenges(prev=>{
+      const existing=prev[date]||{prompt:'',completedBy:[]};
+      const completedBy=completedByUser?[...new Set([...existing.completedBy,completedByUser])]:existing.completedBy;
+      return{...prev,[date]:{prompt,completedBy}};
+    });
+    setSyncing(true);
+    try{await appendRow('Challenge',[date,prompt,completedByUser||'']);}
+    catch(e){setError('Challenge update failed.');}
+    finally{setSyncing(false);}
+  },[]);
 
   if(!currentUser) return <LoginScreen onLogin={handleLogin}/>;
 
-  if(loading) return (
+  if(loading) return(
     <div style={{background:'#15171c',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16}}>
-      <div className="spin" style={{display:'flex'}}><IC.Loader/></div>
+      <div className="spin" style={{display:'flex',color:'#e8b34e'}}>{IC.Loader(28)}</div>
       <div className="mono" style={{color:'#7c8493',fontSize:13}}>Loading Quest Log…</div>
     </div>
   );
 
-  const TABS = [
-    {id:'log',label:'Today',Icon:IC.Today},
-    {id:'dashboard',label:'Stats',Icon:IC.Activity},
-    {id:'measurements',label:'Body',Icon:IC.Ruler},
-    {id:'leaderboard',label:'Squad',Icon:IC.Users},
+  const TABS=[
+    {id:'home',label:'Home',Icon:s=>IC.Home(s)},
+    {id:'log',label:'Today',Icon:s=>IC.Today(s)},
+    {id:'tasks',label:'Tasks',Icon:s=>IC.Task(s)},
+    {id:'stats',label:'Stats',Icon:s=>IC.Activity(s)},
+    {id:'body',label:'Body',Icon:s=>IC.Ruler(s)},
+    {id:'squad',label:'Squad',Icon:s=>IC.Users(s)},
   ];
 
-  const sharedProps = { dateKey,dayOffset,setDayOffset,dayLog,toggle,earnedXP,fulfilment,catBreakdown,last7,measurements:userMeasurements,latestM,saveMeasurement,accentColor,readOnly };
+  const commonProps={currentUser,accentColor,readOnly,viewingUser};
+  const logProps={dateKey,dayOffset,setDayOffset,dayLog,toggle,earnedXP,fulfilment,catBreakdown,...commonProps};
 
-  return (
-    <div style={{background:'#15171c',color:'#e7e9ee',minHeight:'100vh',maxWidth:isMobile?'100%':880,margin:'0 auto'}}>
+  return(
+    <div style={{background:'#15171c',color:'#e7e9ee',minHeight:'100vh',maxWidth:isMobile?'100%':900,margin:'0 auto'}}>
+      {/* Add Task Modal */}
+      {showAddTask&&<AddTaskModal defaultSection={addTaskSection} onClose={()=>setShowAddTask(false)} onSave={addTask}/>}
+
       {/* Header */}
-      <div style={{padding:isMobile?'20px 18px 12px':'28px 40px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <div className="mono" style={{fontSize:11,color:'#7c8493',letterSpacing:2,marginBottom:2}}>DAY IN LIFE</div>
-          <div style={{fontSize:isMobile?20:26,fontWeight:700}}>Quest Log</div>
+      <div style={{padding:isMobile?'18px 18px 10px':'24px 40px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid #1f2228',position:'sticky',top:0,background:'#15171c',zIndex:50}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div>
+            <div className="mono" style={{fontSize:10,color:'#7c8493',letterSpacing:2}}>QUEST LOG</div>
+            <div style={{fontSize:isMobile?16:18,fontWeight:700,lineHeight:1.2}}>{activeUser?.name}</div>
+          </div>
+          {readOnly&&<div style={pill('#f08b8b')}>{IC.Eye()} viewing</div>}
         </div>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
-          {syncing&&<div className="spin" style={{display:'flex',opacity:0.6}}><IC.Loader/></div>}
-          {/* User switcher */}
+          {syncing&&<div className="spin" style={{display:'flex',opacity:0.6,color:'#e8b34e'}}>{IC.Loader(16)}</div>}
           <div style={{position:'relative'}}>
-            <button onClick={()=>setShowUserPicker(v=>!v)} style={{
-              display:'flex',alignItems:'center',gap:8,padding:'7px 12px',borderRadius:10,
-              border:`1px solid ${accentColor}44`,background:`${accentColor}11`,
-              color:'#e7e9ee',fontSize:13,fontWeight:600,cursor:'pointer'
-            }}>
-              <div style={{width:8,height:8,borderRadius:'50%',background:accentColor}}/>
-              {activeUser?.name}
-              {readOnly&&<span style={{fontSize:10,color:'#7c8493',background:'#2a2d35',padding:'2px 6px',borderRadius:4}}>viewing</span>}
+            <button onClick={()=>setShowUserPicker(v=>!v)} style={{width:32,height:32,borderRadius:'50%',background:accentColor+'22',border:`2px solid ${accentColor}`,display:'flex',alignItems:'center',justifyContent:'center',color:accentColor,fontWeight:700,fontSize:13}}>
+              {activeUser?.name[0]}
             </button>
             {showUserPicker&&(
-              <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:12,padding:8,zIndex:200,minWidth:160,boxShadow:'0 8px 32px rgba(0,0,0,0.4)'}}>
-                <div style={{fontSize:11,color:'#5f6470',padding:'4px 8px 8px',fontWeight:600}}>VIEW AS</div>
+              <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',background:'#1c1f26',border:'1px solid #2a2d35',borderRadius:14,padding:10,zIndex:200,minWidth:180,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
+                <div style={{fontSize:11,color:'#5f6470',padding:'2px 8px 8px',fontWeight:600,fontFamily:'IBM Plex Mono'}}>VIEW AS</div>
                 {USERS.map(u=>(
-                  <button key={u.name} onClick={()=>{
-                    setViewingUser(u.name===currentUser.name?null:u);
-                    setShowUserPicker(false);
-                    setTab('log');
-                  }} style={{
-                    display:'flex',alignItems:'center',gap:8,width:'100%',padding:'8px 10px',borderRadius:8,
-                    border:'none',background:activeUser?.name===u.name?`${u.color}18`:'transparent',
-                    color:'#e7e9ee',fontSize:13,fontWeight:500,cursor:'pointer',textAlign:'left'
-                  }}>
+                  <button key={u.name} onClick={()=>{setViewingUser(u.name===currentUser.name?null:u);setShowUserPicker(false);setTab('home');}} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'8px 10px',borderRadius:8,background:activeUser?.name===u.name?u.color+'18':'transparent',color:'#e7e9ee',fontSize:13,fontWeight:500,textAlign:'left'}}>
                     <div style={{width:8,height:8,borderRadius:'50%',background:u.color}}/>
-                    {u.name}
-                    {u.name===currentUser.name&&<span style={{fontSize:10,color:'#7c8493',marginLeft:'auto'}}>you</span>}
+                    {u.name}{u.name===currentUser.name&&<span style={{fontSize:10,color:'#7c8493',marginLeft:'auto'}}>you</span>}
                   </button>
                 ))}
                 <div style={{borderTop:'1px solid #2a2d35',marginTop:8,paddingTop:8}}>
-                  <button onClick={()=>{setShowUserPicker(false);handleLogout();}} style={{
-                    display:'flex',alignItems:'center',gap:8,width:'100%',padding:'8px 10px',borderRadius:8,
-                    border:'none',background:'transparent',color:'#f08b8b',fontSize:13,cursor:'pointer'
-                  }}><IC.Logout/> Sign out</button>
+                  <button onClick={()=>{setShowUserPicker(false);handleLogout();}} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'8px 10px',borderRadius:8,color:'#f08b8b',fontSize:13}}>
+                    {IC.Logout()} Sign out
+                  </button>
                 </div>
               </div>
             )}
           </div>
-          <button onClick={loadData} style={{...navBtn,color:'#9aa1ad'}}><IC.Refresh/></button>
+          <button onClick={loadData} style={{...navBtn,color:'#9aa1ad'}}>{IC.Refresh()}</button>
         </div>
       </div>
 
-      {error&&<div style={{margin:'0 18px 12px',padding:'10px 14px',borderRadius:10,background:'rgba(240,100,100,0.1)',border:'1px solid rgba(240,100,100,0.3)',fontSize:13,color:'#f08b8b',display:'flex',justifyContent:'space-between'}}>
-        {error}<button onClick={()=>setError(null)} style={{background:'none',border:'none',color:'#f08b8b',cursor:'pointer'}}>✕</button>
+      {error&&<div style={{margin:'0 18px 8px',padding:'10px 14px',borderRadius:10,background:'rgba(240,100,100,0.1)',border:'1px solid rgba(240,100,100,0.3)',fontSize:13,color:'#f08b8b',display:'flex',justifyContent:'space-between'}}>
+        {error}<button onClick={()=>setError(null)} style={{color:'#f08b8b'}}>{IC.X()}</button>
       </div>}
-
-      {/* Close picker on outside click */}
       {showUserPicker&&<div onClick={()=>setShowUserPicker(false)} style={{position:'fixed',inset:0,zIndex:100}}/>}
 
-      {isMobile ? (
+      {/* Layout */}
+      {isMobile?(
         <>
-          <div style={{padding:'0 18px 16px'}}>
-            {tab==='log'&&<LogTab {...sharedProps}/>}
-            {tab==='dashboard'&&<DashboardTab {...sharedProps}/>}
-            {tab==='measurements'&&<MeasurementsTab {...sharedProps}/>}
-            {tab==='leaderboard'&&<LeaderboardTab allLogs={allLogs}/>}
+          <div style={{padding:'16px 18px 0'}}>
+            {tab==='home'&&<HomeTab {...{currentUser,allLogs:userLogs,tasks,challenges,accentColor,dayOffset,setDayOffset,onAddTask:()=>setShowAddTask(true),earnedXP,fulfilment,catBreakdown,last7,allUsers:USERS,allLogsAll:allLogs}}/>}
+            {tab==='log'&&<LogTab {...logProps}/>}
+            {tab==='tasks'&&<TasksTab {...{...commonProps,tasks,onAddTask:()=>setShowAddTask(true),onCompleteTask:completeTask,onToggleSubtask:toggleSubtask,onDeleteTask:deleteTask,onToggleStar:toggleStar}}/>}
+            {tab==='stats'&&<StatsTab {...{currentUser,last7,catBreakdown,earnedXP,fulfilment,tasks,accentColor,allLogs}}/>}
+            {tab==='body'&&<MeasurementsTab {...{...commonProps,measurements,targets,onLogMeasurements:logMeasurements,onSaveTargets:saveTargets}}/>}
+            {tab==='squad'&&<LeaderboardTab {...{allLogs,challenges,currentUser,onSetChallenge:setChallenge}}/>}
           </div>
-          <div style={{position:'fixed',bottom:0,left:0,right:0,background:'#1c1f26',borderTop:'1px solid #2a2d35',display:'flex',padding:'10px 0 20px',zIndex:100}}>
+          {/* Bottom nav */}
+          <div style={{position:'fixed',bottom:0,left:0,right:0,background:'#1c1f26',borderTop:'1px solid #2a2d35',display:'flex',padding:'8px 0 18px',zIndex:100}}>
             {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4,background:'none',border:'none',color:tab===t.id?accentColor:'#5f6470',fontSize:11,fontWeight:600,cursor:'pointer',transition:'color .15s'}}>
-                <t.Icon/>{t.label}
+              <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3,background:'none',color:tab===t.id?accentColor:'#5f6470',fontSize:10,fontWeight:600,transition:'color .15s'}}>
+                {t.Icon(tab===t.id?20:18)}{t.label}
               </button>
             ))}
           </div>
+          {/* FAB */}
+          <button onClick={()=>setShowAddTask(true)} style={{position:'fixed',bottom:80,right:20,width:50,height:50,borderRadius:'50%',background:accentColor,color:'#15171c',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 20px '+accentColor+'66',zIndex:90,border:'none',cursor:'pointer'}}>
+            {IC.Plus(22)}
+          </button>
         </>
-      ) : (
+      ):(
         <div style={{display:'flex'}}>
-          <div style={{width:180,padding:'8px 16px',flexShrink:0}}>
-            <div style={{display:'flex',flexDirection:'column',gap:4,position:'sticky',top:32}}>
+          {/* Sidebar */}
+          <div style={{width:200,padding:'16px',flexShrink:0,borderRight:'1px solid #1f2228',minHeight:'calc(100vh - 61px)'}}>
+            <div style={{display:'flex',flexDirection:'column',gap:4,position:'sticky',top:80}}>
               {TABS.map(t=>(
-                <button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:10,border:'1px solid '+(tab===t.id?accentColor:'transparent'),background:tab===t.id?accentColor+'18':'transparent',color:tab===t.id?accentColor:'#9aa1ad',fontSize:14,fontWeight:600,cursor:'pointer',textAlign:'left',transition:'all .15s'}}>
-                  <t.Icon/>{t.label}
+                <button key={t.id} onClick={()=>setTab(t.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:10,border:'none',background:tab===t.id?accentColor+'18':'transparent',color:tab===t.id?accentColor:'#9aa1ad',fontSize:14,fontWeight:600,textAlign:'left',transition:'all .15s'}}>
+                  {t.Icon(16)}{t.label}
                 </button>
               ))}
+              <div style={{marginTop:16,paddingTop:16,borderTop:'1px solid #1f2228'}}>
+                <button onClick={()=>setShowAddTask(true)} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'10px 14px',borderRadius:10,background:accentColor,color:'#15171c',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                  {IC.Plus(16)} New Task
+                </button>
+              </div>
             </div>
           </div>
-          <div style={{flex:1,padding:'8px 40px 60px 24px'}}>
-            {tab==='log'&&<LogTab {...sharedProps}/>}
-            {tab==='dashboard'&&<DashboardTab {...sharedProps}/>}
-            {tab==='measurements'&&<MeasurementsTab {...sharedProps}/>}
-            {tab==='leaderboard'&&<LeaderboardTab allLogs={allLogs}/>}
+          {/* Content */}
+          <div style={{flex:1,padding:'20px 40px 60px 32px',maxWidth:680}}>
+            {tab==='home'&&<HomeTab {...{currentUser,allLogs:userLogs,tasks,challenges,accentColor,dayOffset,setDayOffset,onAddTask:()=>setShowAddTask(true),earnedXP,fulfilment,catBreakdown,last7,allUsers:USERS,allLogsAll:allLogs}}/>}
+            {tab==='log'&&<LogTab {...logProps}/>}
+            {tab==='tasks'&&<TasksTab {...{...commonProps,tasks,onAddTask:()=>setShowAddTask(true),onCompleteTask:completeTask,onToggleSubtask:toggleSubtask,onDeleteTask:deleteTask,onToggleStar:toggleStar}}/>}
+            {tab==='stats'&&<StatsTab {...{currentUser,last7,catBreakdown,earnedXP,fulfilment,tasks,accentColor,allLogs}}/>}
+            {tab==='body'&&<MeasurementsTab {...{...commonProps,measurements,targets,onLogMeasurements:logMeasurements,onSaveTargets:saveTargets}}/>}
+            {tab==='squad'&&<LeaderboardTab {...{allLogs,challenges,currentUser,onSetChallenge:setChallenge}}/>}
           </div>
         </div>
       )}
