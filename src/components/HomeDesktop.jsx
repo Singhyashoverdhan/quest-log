@@ -8,7 +8,9 @@ import TaskRow from './TaskRow';
 import TimeModal from './TimeModal';
 
 export default function HomeDesktop({ cu, allLogs, tasks, challenges, ac, toggle, completeTask, toggleSubtask, toggleStar, onAddTask, setTaskSection, earnedXP, fulfilment, last7, allLogsAll, onCompleteChallenge }) {
-  const [timeModal, setTimeModal] = React.useState(null);
+  const [timeModal, setTimeModal] = React.useState(null); // for tasks only
+  const [pendingTime, setPendingTime] = React.useState(null); // { cat, act, xp }
+  const [timeInputVal, setTimeInputVal] = React.useState('');
   const dk = getDK(0);
   const myLog = (allLogs[cu.name] || {})[dk] || {};
   const myTasks = tasks[cu.name] || [];
@@ -22,22 +24,29 @@ export default function HomeDesktop({ cu, allLogs, tasks, challenges, ac, toggle
   function handleHabitCheck(cat, act, xp, trackTime) {
     const key = `${cat}::${act}`;
     const already = myLog[key]?.done;
-    if (!already && trackTime) {
-      setTimeModal({ type: 'habit', cat, act, xp, title: act });
+    if (already) {
+      toggle(cat, act, xp, 0);
+      if (pendingTime?.cat === cat && pendingTime?.act === act) { setPendingTime(null); setTimeInputVal(''); }
+    } else if (trackTime) {
+      setPendingTime({ cat, act, xp });
+      setTimeInputVal('');
     } else {
       toggle(cat, act, xp, 0);
     }
+  }
+
+  function submitPendingTime() {
+    if (!pendingTime) return;
+    toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, parseInt(timeInputVal) || 0);
+    setPendingTime(null);
+    setTimeInputVal('');
   }
 
   return (
     <div className="fade" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: 'auto', gap: 14, padding: '0 0 40px' }}>
       {timeModal && (
         <TimeModal label={timeModal.title} optional onClose={() => setTimeModal(null)}
-          onSubmit={(mins) => {
-            if (timeModal.type === 'habit') toggle(timeModal.cat, timeModal.act, timeModal.xp, mins);
-            else if (timeModal.type === 'task') completeTask(timeModal.id, mins);
-            setTimeModal(null);
-          }} />
+          onSubmit={(mins) => { completeTask(timeModal.id, mins); setTimeModal(null); }} />
       )}
 
       {/* COL 1 */}
@@ -174,20 +183,33 @@ export default function HomeDesktop({ cu, allLogs, tasks, challenges, ac, toggle
               {cat.activities.map(act => {
                 const key = `${cat.name}::${act.name}`;
                 const state = myLog[key] || { done: false, mins: 0 };
+                const isPending = pendingTime?.cat === cat.name && pendingTime?.act === act.name;
+                const visual = state.done || isPending;
                 return (
-                  <button key={act.name} onClick={() => handleHabitCheck(cat.name, act.name, act.xp, act.trackTime)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 10px', borderRadius: 9, marginBottom: 5, border: '1px solid ' + (state.done ? col + '55' : '#2a2d35'), background: state.done ? col + '12' : 'transparent', textAlign: 'left', transition: 'all .12s' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                      <div style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid ' + (state.done ? col : '#444955'), background: state.done ? col : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#15171c', transition: 'all .15s' }}>
-                        {state.done && I.Check(11)}
+                  <React.Fragment key={act.name}>
+                    <button onClick={() => handleHabitCheck(cat.name, act.name, act.xp, act.trackTime)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 10px', borderRadius: 9, marginBottom: isPending ? 0 : 5, border: '1px solid ' + (visual ? col + '55' : '#2a2d35'), background: visual ? col + '12' : 'transparent', textAlign: 'left', transition: 'all .12s' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <div style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid ' + (visual ? col : '#444955'), background: visual ? col : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#15171c', transition: 'all .15s' }}>
+                          {visual && I.Check(11)}
+                        </div>
+                        <span style={{ fontSize: 13, color: visual ? '#e7e9ee' : '#c5cad3' }}>{act.name}</span>
                       </div>
-                      <span style={{ fontSize: 13, color: state.done ? '#e7e9ee' : '#c5cad3' }}>{act.name}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {state.mins > 0 && <span className="mono" style={{ fontSize: 10, color: col }}>{fmtM(state.mins)}</span>}
-                      <span className="mono" style={{ fontSize: 11, color: state.done ? col : '#5f6470' }}>+{act.xp}</span>
-                    </div>
-                  </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {state.mins > 0 && <span className="mono" style={{ fontSize: 10, color: col }}>{fmtM(state.mins)}</span>}
+                        <span className="mono" style={{ fontSize: 11, color: visual ? col : '#5f6470' }}>+{act.xp}</span>
+                      </div>
+                    </button>
+                    {isPending && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px 8px', marginBottom: 5, background: col + '08', borderRadius: '0 0 9px 9px', borderLeft: '1px solid ' + col + '44', borderRight: '1px solid ' + col + '44', borderBottom: '1px solid ' + col + '44' }}>
+                        <span style={{ fontSize: 11, color: '#7c8493', flexShrink: 0 }}>mins:</span>
+                        <input type="number" placeholder="optional" value={timeInputVal} onChange={e => setTimeInputVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitPendingTime()} autoFocus
+                          style={{ width: 64, padding: '3px 6px', borderRadius: 6, border: '1px solid #2a2d35', background: '#15171c', color: '#e7e9ee', fontSize: 12, outline: 'none' }} />
+                        <button onClick={submitPendingTime} style={{ padding: '3px 8px', borderRadius: 6, background: col, color: '#15171c', fontSize: 11, fontWeight: 700 }}>✓</button>
+                        <button onClick={() => { toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, 0); setPendingTime(null); setTimeInputVal(''); }} style={{ fontSize: 11, color: '#7c8493' }}>skip</button>
+                      </div>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </div>

@@ -43,12 +43,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
       {filtered.length === 0 && <div style={C.card({ padding: '30px', textAlign: 'center', color: '#5f6470', fontSize: 13 })}>{showDone ? 'No completed tasks.' : 'Nothing here. Add a task!'}</div>}
       {filtered.map(t => (
         <div key={t.id} style={{ position: 'relative' }}>
-          <TaskRow task={t} ac={ac} sc={SC} onComplete={() => !t.status === 'done' && setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
-          {!readOnly && t.status === 'active' && (
-            <div style={{ position: 'absolute', right: 36, top: 10, display: 'flex', gap: 6 }}>
-              <button onClick={() => setTimeModal({ id: t.id, title: t.title })} style={{ ...C.pill('#7ad6a0', { cursor: 'pointer', fontSize: 11 }) }}>{I.Check(10)} done</button>
-            </div>
-          )}
+          <TaskRow task={t} ac={ac} sc={SC} onComplete={() => t.status !== 'done' && setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
           {!readOnly && <button onClick={() => deleteTask(t.id, t.user)} style={{ position: 'absolute', right: 8, top: 10, color: '#3a3d45', display: 'flex' }}>{I.Trash()}</button>}
         </div>
       ))}

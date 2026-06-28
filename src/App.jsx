@@ -10,8 +10,8 @@ import HomeDesktop from './components/HomeDesktop';
 import HomeMobile from './components/HomeMobile';
 import TasksTab from './components/TasksTab';
 import StatsTab from './components/StatsTab';
-import BodyTab from './components/BodyTab';
 import SquadTab from './components/SquadTab';
+import SetupTab from './components/SetupTab';
 
 function parseLog(rows) {
   const L = {};
@@ -226,10 +226,10 @@ export default function App() {
 
   const TABS = [
     { id: 'home',  label: 'Home',  icon: I.Home },
+    { id: 'daily', label: 'Daily', icon: I.Activity },
     { id: 'tasks', label: 'Tasks', icon: I.Task },
-    { id: 'stats', label: 'Stats', icon: I.Activity },
-    { id: 'body',  label: 'Body',  icon: I.Ruler },
     { id: 'squad', label: 'Squad', icon: I.Users },
+    { id: 'setup', label: 'Setup', icon: I.Ruler },
   ];
 
   const sharedTaskProps = { cu, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, readOnly, viewingUser, ac };
@@ -284,11 +284,11 @@ export default function App() {
       {showUserPicker && <div onClick={() => setShowUserPicker(false)} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />}
 
       <div style={{ padding: isMobile ? '16px 16px 0' : '20px 32px 0', maxWidth: isMobile ? '100%' : 1400, margin: '0 auto' }}>
-        {tab === 'home' && (isMobile ? <HomeMobile {...homeProps} /> : <HomeDesktop {...homeProps} />)}
+        {tab === 'home' && <StatsTab cu={activeUser} last7={last7} catBreakdown={catBreakdown} earnedXP={earnedXP} fulfilment={fulfilment} tasks={tasks} ac={ac} allLogs={allLogs} />}
+        {tab === 'daily' && (isMobile ? <HomeMobile {...homeProps} /> : <HomeDesktop {...homeProps} />)}
         {tab === 'tasks' && <TasksTab {...sharedTaskProps} onAddTask={() => setShowAddTask(true)} />}
-        {tab === 'stats' && <StatsTab cu={cu} last7={last7} catBreakdown={catBreakdown} earnedXP={earnedXP} fulfilment={fulfilment} tasks={tasks} ac={ac} allLogs={allLogs} />}
-        {tab === 'body' && <BodyTab cu={cu} measurements={measurements} targets={targets} onLogMeasurements={logMeasurements} onSaveTargets={saveTargets} ac={ac} readOnly={readOnly} viewingUser={viewingUser} />}
         {tab === 'squad' && <SquadTab allLogs={allLogs} challenges={challenges} cu={cu} onSetChallenge={setChallenge} onCompleteChallenge={completeChallenge} />}
+        {tab === 'setup' && <SetupTab cu={cu} measurements={measurements} targets={targets} onLogMeasurements={logMeasurements} onSaveTargets={saveTargets} ac={ac} readOnly={readOnly} viewingUser={viewingUser} />}
       </div>
 
       {isMobile && (
