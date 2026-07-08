@@ -241,6 +241,15 @@ export default function App() {
     finally { setSyncing(false); }
   }, []);
 
+  // Must be before early returns (Rules of Hooks)
+  const lastMeasVals = React.useMemo(() => {
+    const userM = measurements[cu?.name] || {};
+    const dates = Object.keys(userM).sort();
+    const snap = {};
+    dates.forEach(d => Object.assign(snap, userM[d]));
+    return snap;
+  }, [measurements, cu?.name]);
+
   if (!cu) return <Login onLogin={login} />;
   if (loading) return (
     <div style={{ background: '#13151A', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
@@ -258,15 +267,6 @@ export default function App() {
   ];
 
   const sharedTaskProps = { cu: activeUser, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, readOnly, viewingUser, ac };
-
-  // Snapshot of latest meas for quick-add modal
-  const lastMeasVals = React.useMemo(() => {
-    const userM = measurements[cu?.name] || {};
-    const dates = Object.keys(userM).sort();
-    const snap = {};
-    dates.forEach(d => Object.assign(snap, userM[d]));
-    return snap;
-  }, [measurements, cu?.name]);
 
   return (
     <div style={{ background: '#13151A', color: '#E6E8EF', minHeight: '100vh' }}>
