@@ -31,32 +31,32 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
         </select>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#7c8493', marginBottom: 5 }}>Due Date</div>
+            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 5 }}>Due Date</div>
             <input type="date" value={due} onChange={e => setDue(e.target.value)} style={C.inp({ fontSize: 13 })} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#7c8493', marginBottom: 5 }}>Est. Time (mins)</div>
+            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 5 }}>Est. Time (mins)</div>
             <input type="number" placeholder="60" value={est} onChange={e => setEst(e.target.value)} style={C.inp({ fontSize: 13 })} />
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: '#7c8493', marginBottom: 8 }}>Checklist</div>
+          <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 8 }}>Checklist</div>
           {subs.map((st, i) => (
             <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 15, height: 15, borderRadius: 4, border: '1px solid #444955', flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 13 }}>{st.title}</span>
-              <button onClick={() => setSubs(s => s.filter((_, j) => j !== i))} style={{ color: '#f08b8b', display: 'flex' }}>{I.X()}</button>
+              <div style={{ width: 15, height: 15, borderRadius: 4, border: '1px solid #D8D4CC', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 13, color: '#1A1814' }}>{st.title}</span>
+              <button onClick={() => setSubs(s => s.filter((_, j) => j !== i))} style={{ color: '#C47878', display: 'flex' }}>{I.X()}</button>
             </div>
           ))}
           <div style={{ display: 'flex', gap: 8 }}>
             <input placeholder="Add item" value={si} onChange={e => setSi(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSub()} style={C.inp({ flex: 1 })} />
-            <button onClick={addSub} style={{ ...C.nb, background: '#e8b34e11', borderColor: '#e8b34e33', color: '#e8b34e' }}>{I.Plus()}</button>
+            <button onClick={addSub} style={{ ...C.nb, background: '#C9A97011', borderColor: '#C9A97033', color: '#C9A970' }}>{I.Plus()}</button>
           </div>
         </div>
-        <button onClick={() => setStarred(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6, color: starred ? '#e8b34e' : '#7c8493', fontSize: 13, alignSelf: 'flex-start' }}>
-          {I.Star(14, starred ? '#e8b34e' : 'none')} {starred ? 'Starred' : 'Star'}
+        <button onClick={() => setStarred(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6, color: starred ? '#C9A970' : '#A09C96', fontSize: 13, alignSelf: 'flex-start' }}>
+          {I.Star(14, starred ? '#C9A970' : 'none')} {starred ? 'Starred' : 'Star'}
         </button>
-        <button onClick={() => { if (!title.trim()) return; onSave({ title: title.trim(), notes, section, dueDate: due, estMins: parseInt(est) || 0, starred, subtasks: subs }); }} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#e8b34e', color: '#15171c', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
+        <button onClick={() => { if (!title.trim()) return; onSave({ title: title.trim(), notes, section, dueDate: due, estMins: parseInt(est) || 0, starred, subtasks: subs }); }} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
           Add Task
         </button>
       </div>

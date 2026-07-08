@@ -77,46 +77,46 @@ export default function SquadTab({ allLogs, challenges, cu, onSetChallenge, onCo
 
   return (
     <div className="fade">
-      <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Squad</div>
-      <div className="mono" style={{ fontSize: 11, color: '#6a7080', marginBottom: 18 }}>{fmtD(dk)}</div>
+      <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814', marginBottom: 4 }}>Squad</div>
+      <div className="mono" style={{ fontSize: 11, color: '#A09C96', marginBottom: 18 }}>{fmtD(dk)}</div>
 
       {/* Picture a day challenge */}
-      <div style={C.card({ padding: '16px', marginBottom: 16, borderColor: '#C9A97033' })}>
+      <div style={C.card({ padding: '16px', marginBottom: 16 })}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          {I.Camera()}<span style={{ fontWeight: 600, fontSize: 14 }}>Picture a Day</span>
-          {cu.isAdmin && <button onClick={() => setEditing(v => !v)} style={{ marginLeft: 'auto', ...C.pill('#8A8F9E'), cursor: 'pointer' }}>{I.Edit()} {challenge?.prompt ? 'Edit' : 'Set'}</button>}
+          {I.Camera()}<span style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Picture a Day</span>
+          {cu.isAdmin && <button onClick={() => setEditing(v => !v)} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 12, border: '1px solid #EAE6DE', background: '#F8F6F1', color: '#706C66', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{challenge?.prompt ? 'Edit' : 'Set'}</button>}
         </div>
         {editing && cu.isAdmin && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <input placeholder="Today's prompt…" value={prompt} onChange={e => setPrompt(e.target.value)} style={C.inp({ flex: 1, fontSize: 13 })} />
-            <button onClick={() => { if (prompt.trim()) { onSetChallenge(dk, prompt.trim()); setPrompt(''); setEditing(false); } }} style={{ padding: '8px 14px', borderRadius: 10, background: '#C9A970', color: '#13151A', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Set</button>
+            <input placeholder="Today's prompt…" value={prompt} onChange={e => setPrompt(e.target.value)} style={{ ...{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #E8E4DC', background: '#F8F6F1', color: '#1A1814', fontSize: 13, outline: 'none' }, flex: 1 }} />
+            <button onClick={() => { if (prompt.trim()) { onSetChallenge(dk, prompt.trim()); setPrompt(''); setEditing(false); } }} style={{ padding: '8px 14px', borderRadius: 10, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Set</button>
           </div>
         )}
         {challenge?.prompt ? (
           <>
-            <div style={{ fontSize: 14, color: '#B0B7C3', marginBottom: 12, fontStyle: 'italic' }}>"{challenge.prompt}"</div>
+            <div style={{ fontSize: 13, color: '#706C66', marginBottom: 12, fontStyle: 'italic' }}>"{challenge.prompt}"</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {USERS.map(u => {
                 const done = challenge.completions?.[u.name];
                 const isMe = u.name === cu.name;
                 return (
                   <button key={u.name} onClick={() => isMe && !done && onCompleteChallenge(dk, challenge.prompt, cu.name)}
-                    style={{ ...C.pill(done ? u.color : '#4a5060'), cursor: isMe && !done ? 'pointer' : 'default', padding: '6px 12px', fontSize: 12 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: done ? u.color : '#4a5060' }} /> {u.name} {done ? '✓' : '○'}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, background: done ? u.color + '18' : '#F8F6F1', border: `1px solid ${done ? u.color + '44' : '#EAE6DE'}`, color: done ? u.color : '#A09C96', fontSize: 12, fontWeight: 600, cursor: isMe && !done ? 'pointer' : 'default' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: done ? u.color : '#D8D4CC' }} /> {u.name} {done ? '✓' : '○'}
                   </button>
                 );
               })}
             </div>
           </>
         ) : (
-          <div style={{ color: '#4a5060', fontSize: 13 }}>{cu.isAdmin ? 'Set a challenge for today.' : 'No challenge today.'}</div>
+          <div style={{ color: '#A09C96', fontSize: 13 }}>{cu.isAdmin ? 'Set a challenge for today.' : 'No challenge today.'}</div>
         )}
       </div>
 
       {/* View toggle */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {[{ id: 'today', label: 'Today' }, { id: 'week', label: '7 Days' }, { id: 'month', label: 'Month' }].map(v => (
-          <button key={v.id} onClick={() => setView(v.id)} style={{ padding: '5px 13px', borderRadius: 20, border: '1px solid ' + (view === v.id ? '#C9A97066' : '#252830'), background: view === v.id ? '#C9A97018' : 'transparent', color: view === v.id ? '#C9A970' : '#6a7080', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all .15s' }}>
+          <button key={v.id} onClick={() => setView(v.id)} style={{ padding: '5px 13px', borderRadius: 20, border: '1px solid ' + (view === v.id ? '#C9A97066' : '#EAE6DE'), background: view === v.id ? '#C9A970' : '#FFFFFF', color: view === v.id ? '#FFFFFF' : '#706C66', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             {v.label}
           </button>
         ))}
@@ -126,7 +126,7 @@ export default function SquadTab({ allLogs, challenges, cu, onSetChallenge, onCo
       {scores.map((u, i) => (
         <div key={u.name} style={C.card({ padding: '14px 16px', marginBottom: 10 })}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="mono" style={{ fontSize: i < 3 ? 20 : 14, width: 28, textAlign: 'center', color: i === 0 ? '#C9A970' : i === 1 ? '#8A909E' : i === 2 ? '#A0826A' : '#4a5060', fontWeight: 700 }}>
+            <div className="mono" style={{ fontSize: i < 3 ? 20 : 14, width: 28, textAlign: 'center', color: i === 0 ? '#C9A970' : i === 1 ? '#8A909E' : i === 2 ? '#A0826A' : '#C4C0BA', fontWeight: 700 }}>
               {i === 0 ? '①' : i === 1 ? '②' : i === 2 ? '③' : `${i + 1}`}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -134,19 +134,19 @@ export default function SquadTab({ allLogs, challenges, cu, onSetChallenge, onCo
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: u.color }} />
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>{u.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>{u.name}</span>
                     <span style={{ fontSize: 13 }}>{u.emoji}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#6a7080', fontStyle: 'italic' }}>{u.title}</div>
+                  <div style={{ fontSize: 11, color: '#A09C96', fontStyle: 'italic' }}>{u.title}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div className="mono" style={{ fontSize: 13, color: u.color, fontWeight: 700 }}>{u.xp} xp</div>
-                  {view === 'today' && <div className="mono" style={{ fontSize: 10, color: '#4a5060' }}>{u.pct}%</div>}
-                  {view !== 'today' && <div className="mono" style={{ fontSize: 10, color: '#4a5060' }}>🔥{u.streak}d</div>}
+                  {view === 'today' && <div className="mono" style={{ fontSize: 10, color: '#A09C96' }}>{u.pct}%</div>}
+                  {view !== 'today' && <div className="mono" style={{ fontSize: 10, color: '#A09C96' }}>🔥{u.streak}d</div>}
                 </div>
               </div>
               {view === 'today' && (
-                <div style={{ height: 3, background: '#252830', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: 3, background: '#F0EDE8', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${u.pct}%`, background: u.color, borderRadius: 3, transition: 'width .5s' }} />
                 </div>
               )}
