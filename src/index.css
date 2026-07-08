@@ -1,6 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { background: #15171c; color: #e7e9ee; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; }
+body { background: #F5F3EE; color: #1A1814; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; }
 .mono { font-family: 'IBM Plex Mono', monospace; }
 input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; }
@@ -16,6 +16,6 @@ input, textarea, select { font-family: inherit; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2d35; border-radius: 4px; }
-::placeholder { color: #5f6470; }
+::-webkit-scrollbar-thumb { background: #D8D4CC; border-radius: 4px; }
+::placeholder { color: #B0ACA6; }
 * { -webkit-font-smoothing: antialiased; }
