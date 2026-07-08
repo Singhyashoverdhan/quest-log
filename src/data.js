@@ -1,27 +1,29 @@
+export const ACCENT = '#C9A970'; // global UI accent — warm refined gold
+
 export const USERS = [
-  { name: "Yash",    pin: "1111", color: "#e8b34e", isAdmin: true  },
-  { name: "Soya",    pin: "2222", color: "#7ad6a0", isAdmin: false },
-  { name: "Anurag",  pin: "3333", color: "#7eb8f7", isAdmin: false },
-  { name: "Shaurya", pin: "4444", color: "#c4a0f5", isAdmin: false },
-  { name: "Aastha",  pin: "5555", color: "#f08b8b", isAdmin: false },
-  { name: "Manit",   pin: "6666", color: "#f5a623", isAdmin: false },
+  { name: "Yash",    pin: "1111", color: "#C9A970", isAdmin: true  },
+  { name: "Soya",    pin: "2222", color: "#7BAF92", isAdmin: false },
+  { name: "Anurag",  pin: "3333", color: "#7B9EC4", isAdmin: false },
+  { name: "Shaurya", pin: "4444", color: "#A48CC4", isAdmin: false },
+  { name: "Aastha",  pin: "5555", color: "#C47878", isAdmin: false },
+  { name: "Manit",   pin: "6666", color: "#C4B78A", isAdmin: false },
 ];
 
 export const SECTIONS = [
-  { name: "Morning",        color: "#f3c873", habits: ["Morning Setup"] },
-  { name: "Health",         color: "#7ad6a0", habits: ["Physical Health"] },
-  { name: "Cleanse",        color: "#a0d8f5", habits: ["Cleanse"] },
-  { name: "Creative Work",  color: "#c4a0f5", habits: ["Creative Work"] },
-  { name: "Learning",       color: "#7eb8f7", habits: ["Learning"] },
-  { name: "Food",           color: "#f08b8b", habits: ["Food"] },
-  { name: "Expression",     color: "#e8b34e", habits: ["Expression"] },
-  { name: "Work",           color: "#7eb8f7", habits: [] },
-  { name: "Hobby Project",  color: "#c4a0f5", habits: [] },
-  { name: "Home",           color: "#e8b34e", habits: [] },
-  { name: "Finance",        color: "#f3c873", habits: [] },
-  { name: "People",         color: "#f08b8b", habits: [] },
-  { name: "Upcoming Event", color: "#a0d8f5", habits: [] },
-  { name: "Someday",        color: "#9aa1ad", habits: [] },
+  { name: "Morning",        color: "#C4B78A", habits: ["Morning Setup"] },
+  { name: "Health",         color: "#7BAF92", habits: ["Physical Health"] },
+  { name: "Cleanse",        color: "#7AAFBB", habits: ["Cleanse"] },
+  { name: "Creative Work",  color: "#A48CC4", habits: ["Creative Work"] },
+  { name: "Learning",       color: "#7B9EC4", habits: ["Learning"] },
+  { name: "Food",           color: "#C47878", habits: ["Food"] },
+  { name: "Expression",     color: "#C9A970", habits: ["Expression"] },
+  { name: "Work",           color: "#7B9EC4", habits: [] },
+  { name: "Hobby Project",  color: "#A48CC4", habits: [] },
+  { name: "Home",           color: "#C9A970", habits: [] },
+  { name: "Finance",        color: "#C4B78A", habits: [] },
+  { name: "People",         color: "#C47878", habits: [] },
+  { name: "Upcoming Event", color: "#7AAFBB", habits: [] },
+  { name: "Someday",        color: "#8A8F9E", habits: [] },
 ];
 
 export const TASK_SECTIONS = SECTIONS.map(s => s.name);
