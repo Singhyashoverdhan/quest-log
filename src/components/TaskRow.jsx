@@ -3,13 +3,14 @@ import { C } from './ui';
 import { I } from './Icons';
 import { fmtDS, fmtM } from '../utils';
 
-export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar, compact, readOnly }) {
+export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar, compact, readOnly, urgency }) {
   const [open, setOpen] = React.useState(false);
   const col = sc[task.section] || '#A09C96';
   const subDone = task.subtasks.filter(s => s.done).length;
+  const urgCol = urgency === 'overdue' ? '#C47878' : urgency === 'today' ? '#C9A970' : urgency === 'soon' ? '#C4B78A' : null;
   return (
     <div style={{ marginBottom: compact ? 6 : 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: '1px solid #EAE6DE', background: '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: `1px solid ${urgCol ? urgCol + '44' : '#EAE6DE'}`, background: urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
         {!readOnly && (
           <button onClick={onComplete} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${col}`, background: 'transparent', flexShrink: 0, marginTop: 1, cursor: 'pointer' }} />
         )}
@@ -21,7 +22,9 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
           {!compact && task.notes && <div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>{task.notes}</div>}
           <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             {!compact && <span style={C.pill(col)}>{task.section}</span>}
-            {task.dueDate && <span className="mono" style={{ fontSize: 10, color: '#A09C96' }}>{fmtDS(task.dueDate)}</span>}
+            {task.dueDate && <span className="mono" style={{ fontSize: 10, color: urgCol || '#A09C96', fontWeight: urgCol ? 600 : 400 }}>
+              {urgency === 'overdue' ? '⚠ ' : ''}{fmtDS(task.dueDate)}
+            </span>}
             {task.estMins > 0 && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA', display: 'flex', alignItems: 'center', gap: 3 }}>{I.Clock(10)} {fmtM(task.estMins)}</span>}
           </div>
           {task.subtasks.length > 0 && (

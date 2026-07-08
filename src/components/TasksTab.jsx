@@ -1,9 +1,19 @@
 import React from 'react';
 import { SECTIONS, TASK_SECTIONS } from '../data';
+import { TODAY } from '../utils';
 import { C } from './ui';
 import { I } from './Icons';
 import TaskRow from './TaskRow';
 import TimeModal from './TimeModal';
+
+function urgency(task) {
+  if (!task.dueDate) return 'none';
+  if (task.dueDate < TODAY) return 'overdue';
+  if (task.dueDate === TODAY) return 'today';
+  const d = new Date(TODAY + 'T00:00:00'); d.setDate(d.getDate() + 1);
+  if (task.dueDate === d.toISOString().slice(0, 10)) return 'soon';
+  return 'none';
+}
 
 const SC = Object.fromEntries(SECTIONS.map(s => [s.name, s.color]));
 
@@ -44,7 +54,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
       {filtered.length === 0 && <div style={C.card({ padding: '30px', textAlign: 'center', color: '#A09C96', fontSize: 13 })}>{showDone ? 'No completed tasks.' : 'Nothing here. Add a task!'}</div>}
       {filtered.map(t => (
         <div key={t.id} style={{ position: 'relative' }}>
-          <TaskRow task={t} ac={ac} sc={SC} onComplete={() => t.status !== 'done' && setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
+          <TaskRow task={t} ac={ac} sc={SC} urgency={t.status === 'active' ? urgency(t) : undefined} onComplete={() => t.status !== 'done' && setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
           {!readOnly && <button onClick={() => deleteTask(t.id, t.user)} style={{ position: 'absolute', right: 8, top: 10, color: '#D8D4CC', cursor: 'pointer' }}>{I.Trash()}</button>}
         </div>
       ))}
