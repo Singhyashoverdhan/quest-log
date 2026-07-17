@@ -1,6 +1,6 @@
 import React from 'react';
 import { MEASUREMENT_AREAS } from '../data';
-import { fmtDS } from '../utils';
+import { fmtDSY } from '../utils';
 import { C } from './ui';
 import { I } from './Icons';
 import Sparkline from './Sparkline';
@@ -86,7 +86,7 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
               {sparkData.map(d => (
                 <div key={d.d} style={{ flexShrink: 0, textAlign: 'center' }}>
                   <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: ac }}>{d.v}</div>
-                  <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 2 }}>{fmtDS(d.d)}</div>
+                  <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 2 }}>{fmtDSY(d.d)}</div>
                 </div>
               ))}
             </div>
