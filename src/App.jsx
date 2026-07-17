@@ -231,10 +231,25 @@ export default function App() {
   const completeTask = React.useCallback(async (taskId, actMins) => {
     if (readOnly) return;
     const uname = cu.name, now = new Date().toISOString();
-    setTasks(prev => { const ut = [...(prev[uname] || [])]; const i = ut.findIndex(t => t.id === taskId); if (i > -1) ut[i] = { ...ut[i], status: 'done', actMins, completedAt: now }; return { ...prev, [uname]: ut }; });
+    let snapshot = null;
+    // Optimistic update — capture previous state for rollback
+    setTasks(prev => {
+      snapshot = prev;
+      const ut = [...(prev[uname] || [])];
+      const i = ut.findIndex(t => t.id === taskId);
+      if (i > -1) ut[i] = { ...ut[i], status: 'done', actMins, completedAt: now };
+      return { ...prev, [uname]: ut };
+    });
     setSyncing(true);
-    const { error: err } = await sb.from('tasks').update({ status: 'done', act_mins: actMins, completed_at: now }).eq('id', taskId);
-    if (err) setError('Complete failed.');
+    const { error: err, data } = await sb.from('tasks')
+      .update({ status: 'done', act_mins: actMins, completed_at: now })
+      .eq('id', taskId)
+      .select('id');
+    // Roll back if the update failed or matched no rows
+    if (err || !data?.length) {
+      if (snapshot) setTasks(snapshot);
+      setError('Could not save — task not marked done. Please try again.');
+    }
     setSyncing(false);
   }, [readOnly, cu]);
 
