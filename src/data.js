@@ -7,6 +7,7 @@ export const USERS = [
   { name: "Shaurya", pin: "4444", color: "#A48CC4", isAdmin: false },
   { name: "Aastha",  pin: "5555", color: "#C47878", isAdmin: false },
   { name: "Manit",   pin: "6666", color: "#C4B78A", isAdmin: false },
+  { name: "Mansi",   pin: "7777", color: "#7AAFBB", isAdmin: false },
 ];
 
 export const SECTIONS = [

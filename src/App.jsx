@@ -1,6 +1,6 @@
 import React from 'react';
-import { USERS, HABIT_CATEGORIES, TOTAL_XP, ACCENT } from './data';
-import { uid, TODAY, normalizeDate } from './utils';
+import { HABIT_CATEGORIES, TOTAL_XP, ACCENT } from './data';
+import { uid, getDK, normalizeDate } from './utils';
 import { sb } from './supabase';
 import { C } from './components/ui';
 import { I } from './components/Icons';
@@ -93,7 +93,7 @@ const LEFT_TABS  = [
 ];
 const RIGHT_TABS = [
   { id: 'body',  label: 'Body',  icon: I.BarChart },
-  { id: 'setup', label: 'Setup', icon: I.Settings },
+  { id: 'tasks', label: 'Tasks', icon: I.Task },
 ];
 const ALL_TABS = [
   { id: 'home',  label: 'Home',  icon: I.Home },
@@ -101,7 +101,6 @@ const ALL_TABS = [
   { id: 'tasks', label: 'Tasks', icon: I.Task },
   { id: 'squad', label: 'Squad', icon: I.Users },
   { id: 'body',  label: 'Body',  icon: I.BarChart },
-  { id: 'setup', label: 'Setup', icon: I.Settings },
 ];
 
 // ── App ───────────────────────────────────────────────────────────────────
@@ -189,17 +188,18 @@ export default function App() {
 
   const toggle = React.useCallback(async (catName, actName, xp, mins) => {
     if (readOnly) return;
+    const todayDK = getDK(0);
     const key = `${catName}::${actName}`, uname = cu.name;
-    const current = ((allLogs[uname] || {})[TODAY] || {})[key] || { done: false, mins: 0 };
+    const current = ((allLogs[uname] || {})[todayDK] || {})[key] || { done: false, mins: 0 };
     const next = { done: !current.done, mins: current.done ? 0 : (mins || 0) };
-    setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [TODAY]: { ...((prev[uname] || {})[TODAY] || {}), [key]: next } } }));
+    setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [todayDK]: { ...((prev[uname] || {})[todayDK] || {}), [key]: next } } }));
     setSyncing(true);
     const { error: err } = await sb.from('daily_log').upsert(
-      { date: TODAY, username: uname, category: catName, activity: actName, xp, done: next.done, mins: next.mins },
+      { date: todayDK, username: uname, category: catName, activity: actName, xp, done: next.done, mins: next.mins },
       { onConflict: 'date,username,category,activity' }
     );
     if (err) {
-      setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [TODAY]: { ...((prev[uname] || {})[TODAY] || {}), [key]: current } } }));
+      setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [todayDK]: { ...((prev[uname] || {})[todayDK] || {}), [key]: current } } }));
       setError('Sync failed.');
     }
     setSyncing(false);
@@ -358,7 +358,7 @@ export default function App() {
 
       {/* Desktop header */}
       {!isMobile && (
-        <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(245,243,238,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <div>
               <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
@@ -372,23 +372,25 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
+            <button onClick={() => setTab('setup')} title="Settings" style={{ width: 30, height: 30, borderRadius: '50%', background: tab === 'setup' ? ac + '18' : 'transparent', border: '1px solid #EAE6DE', color: tab === 'setup' ? ac : '#A09C96', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              {I.Settings(15)}
+            </button>
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: '#FFFFFF', border: '1px solid #EAE6DE', color: '#706C66', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                {activeUser?.name[0]}
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                {cu.name[0]}
               </button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 170, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                  <div style={{ fontSize: 10, color: '#A09C96', padding: '2px 8px 8px', fontWeight: 600, fontFamily: 'IBM Plex Mono', letterSpacing: 1 }}>VIEW AS</div>
-                  {USERS.map(u => (
-                    <button key={u.name} onClick={() => { setViewingUser(u.name === cu.name ? null : u); setShowUserPicker(false); setTab('home'); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, background: activeUser?.name === u.name ? u.color + '14' : 'transparent', color: '#1A1814', fontSize: 13, fontWeight: 500, textAlign: 'left', cursor: 'pointer' }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: u.color }} />{u.name}{u.name === cu.name && <span style={{ fontSize: 10, color: '#A09C96', marginLeft: 'auto' }}>you</span>}
-                    </button>
-                  ))}
-                  <div style={{ borderTop: '1px solid #EAE6DE', marginTop: 8, paddingTop: 8 }}>
-                    <button onClick={() => { setShowUserPicker(false); logout(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer' }}>
-                      {I.Logout()} Sign out
-                    </button>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #F0EDE8', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1A1814' }}>{cu.name}</div>
+                    <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
+                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Settings(14)} Settings
+                  </button>
+                  <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
+                    {I.Logout()} Sign out
+                  </button>
                 </div>
               )}
             </div>
@@ -402,30 +404,32 @@ export default function App() {
 
       {/* Mobile slim header */}
       {isMobile && (
-        <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
+            <button onClick={() => setTab('setup')} title="Settings" style={{ width: 30, height: 30, borderRadius: '50%', background: tab === 'setup' ? ac + '18' : 'transparent', border: '1px solid #EAE6DE', color: tab === 'setup' ? ac : '#A09C96', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              {I.Settings(15)}
+            </button>
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: '#FFFFFF', border: '1px solid #EAE6DE', color: '#706C66', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                {activeUser?.name[0]}
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                {cu.name[0]}
               </button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 170, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                  <div style={{ fontSize: 10, color: '#A09C96', padding: '2px 8px 8px', fontWeight: 600, fontFamily: 'IBM Plex Mono', letterSpacing: 1 }}>VIEW AS</div>
-                  {USERS.map(u => (
-                    <button key={u.name} onClick={() => { setViewingUser(u.name === cu.name ? null : u); setShowUserPicker(false); setTab('home'); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, background: activeUser?.name === u.name ? u.color + '14' : 'transparent', color: '#1A1814', fontSize: 13, fontWeight: 500, textAlign: 'left', cursor: 'pointer' }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: u.color }} />{u.name}{u.name === cu.name && <span style={{ fontSize: 10, color: '#A09C96', marginLeft: 'auto' }}>you</span>}
-                    </button>
-                  ))}
-                  <div style={{ borderTop: '1px solid #EAE6DE', marginTop: 8, paddingTop: 8 }}>
-                    <button onClick={() => { setShowUserPicker(false); logout(); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer' }}>
-                      {I.Logout()} Sign out
-                    </button>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #F0EDE8', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1A1814' }}>{cu.name}</div>
+                    <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
+                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Settings(14)} Settings
+                  </button>
+                  <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
+                    {I.Logout()} Sign out
+                  </button>
                 </div>
               )}
             </div>
@@ -439,7 +443,7 @@ export default function App() {
           {error}<button onClick={() => setError(null)} style={{ color: '#C47878', cursor: 'pointer' }}>{I.X()}</button>
         </div>
       )}
-      {showUserPicker && <div onClick={() => setShowUserPicker(false)} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />}
+      {showUserPicker && <div onClick={() => setShowUserPicker(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />}
 
       {/* Page content */}
       <div style={{ padding: isMobile ? '16px 16px 0' : '24px 32px 0', maxWidth: isMobile ? '100%' : 960, margin: '0 auto' }}>
