@@ -113,6 +113,10 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
           const prev = allVals.length > 1 ? allVals[allVals.length - 2] : null;
           const change = l?.val != null && prev != null ? +(l.val - prev).toFixed(2) : null;
           const dist = l?.val != null && t != null ? +(l.val - t).toFixed(2) : null;
+          const prevDist = prev != null && t != null ? Math.abs(prev - t) : null;
+          const currDist = l?.val != null && t != null ? Math.abs(l.val - t) : null;
+          const towardsGoal = prevDist != null && currDist != null && change !== 0 ? currDist < prevDist : null;
+          const changeCol = towardsGoal === true ? '#7BAF92' : towardsGoal === false ? '#C47878' : '#A09C96';
           const isSelected = selectedArea === a.name;
           return (
             <div key={a.name} onClick={() => setSelectedArea(a.name)} style={C.card({ padding: '12px', cursor: 'pointer', outline: isSelected ? `2px solid ${ac}` : 'none', outlineOffset: 0, transition: 'outline .15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
@@ -122,7 +126,7 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 {change != null
-                  ? <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: change > 0 ? '#C47878' : change < 0 ? '#7BAF92' : '#A09C96' }}>{change > 0 ? '↑' : change < 0 ? '↓' : '—'} {Math.abs(change)}</div>
+                  ? <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: changeCol }}>{change > 0 ? '↑' : change < 0 ? '↓' : '—'} {Math.abs(change)}</div>
                   : <div className="mono" style={{ fontSize: 11, color: '#C4C0BA' }}>—</div>}
                 {dist != null && (() => {
                   const pct = Math.round(100 - Math.abs(dist) / t * 100);
