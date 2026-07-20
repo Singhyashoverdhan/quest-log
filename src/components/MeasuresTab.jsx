@@ -78,19 +78,26 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
           </div>
         </div>
         {sparkData.length > 0 ? (
-          <>
-            <div style={{ overflowX: 'auto' }}>
-              <Sparkline data={sparkData} color={ac} W={Math.max(280, sparkData.length * 48)} H={80} target={userT[selectedArea] ?? null} />
-            </div>
-            <div style={{ display: 'flex', gap: 14, overflowX: 'auto', marginTop: 12, paddingTop: 12, borderTop: '1px solid #F0EDE8' }}>
-              {sparkData.map(d => (
-                <div key={d.d} style={{ flexShrink: 0, textAlign: 'center' }}>
-                  <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: ac }}>{d.v}</div>
-                  <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 2 }}>{fmtDSY(d.d)}</div>
-                </div>
-              ))}
-            </div>
-          </>
+          <div style={{ overflowX: 'auto' }}>
+            {(() => {
+              const W = Math.max(280, sparkData.length * 64);
+              const pad = 6;
+              const xOf = i => pad + ((W - pad * 2) / Math.max(sparkData.length - 1, 1)) * i;
+              return (
+                <>
+                  <Sparkline data={sparkData} color={ac} W={W} H={80} target={userT[selectedArea] ?? null} />
+                  <div style={{ borderTop: '1px solid #F0EDE8', marginTop: 10, paddingTop: 8, position: 'relative', width: W, height: 42 }}>
+                    {sparkData.map((d, i) => (
+                      <div key={d.d} style={{ position: 'absolute', left: xOf(i), transform: 'translateX(-50%)', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: ac }}>{d.v}</div>
+                        <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 1 }}>{fmtDSY(d.d)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         ) : (
           <div style={{ textAlign: 'center', color: '#A09C96', fontSize: 13, padding: '24px 0' }}>No data for {selectedArea} yet.</div>
         )}
