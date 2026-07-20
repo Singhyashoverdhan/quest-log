@@ -18,7 +18,6 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ fontSize: compact ? 13 : 14, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: done ? '#A09C96' : '#1A1814', textDecoration: done ? 'line-through' : 'none' }}>{task.title}</span>
-            {task.starred && <span style={{ color: '#C9A970', flexShrink: 0 }}>{I.Star(10, '#C9A970')}</span>}
           </div>
           {!compact && task.notes && <div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>{task.notes}</div>}
           <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
