@@ -39,19 +39,19 @@ function parseMeas(rows) {
 }
 
 function parseTargets(rows) {
-  const T = {};
+  const Tgt = {};
   for (const r of rows) {
-    if (!T[r.username]) T[r.username] = {};
-    T[r.username][r.area] = r.value;
+    if (!Tgt[r.username]) Tgt[r.username] = {};
+    Tgt[r.username][r.area] = r.value;
   }
-  return T;
+  return Tgt;
 }
 
 function parseTasks(rows) {
-  const T = {};
+  const Tsk = {};
   for (const r of rows) {
-    if (!T[r.username]) T[r.username] = [];
-    T[r.username].push({
+    if (!Tsk[r.username]) Tsk[r.username] = [];
+    Tsk[r.username].push({
       id: r.id,
       user: r.username,
       title: r.title,
@@ -69,7 +69,7 @@ function parseTasks(rows) {
       })),
     });
   }
-  return T;
+  return Tsk;
 }
 
 function parseChallenges(rows, completions) {
@@ -233,7 +233,6 @@ export default function App() {
     if (readOnly) return;
     const uname = cu.name, now = new Date().toISOString();
     let snapshot = null;
-    // Optimistic update — capture previous state for rollback
     setTasks(prev => {
       snapshot = prev;
       const ut = [...(prev[uname] || [])];
@@ -246,7 +245,6 @@ export default function App() {
       .update({ status: 'done', act_mins: actMins, completed_at: now })
       .eq('id', taskId)
       .select('id');
-    // Roll back if the update failed or matched no rows
     if (err || !data?.length) {
       if (snapshot) setTasks(snapshot);
       setError('Could not save — task not marked done. Please try again.');
@@ -348,16 +346,16 @@ export default function App() {
       {/* Quick add bottom sheet */}
       {showQuickAdd && (
         <div onClick={() => setShowQuickAdd(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 400, display: 'flex', alignItems: 'flex-end' }}>
-          <div onClick={e => e.stopPropagation()} className="fadeUp" style={{ background: '#FFFFFF', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: 520, margin: '0 auto', padding: '20px 20px 52px', boxShadow: '0 -8px 32px rgba(0,0,0,0.12)' }}>
+          <div onClick={e => e.stopPropagation()} className="fadeUp" style={{ background: '#FFFFFF', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 520, margin: '0 auto', padding: '20px 20px 52px', boxShadow: '0 -8px 32px rgba(0,0,0,0.12)' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: '#EAE6DE', margin: '0 auto 20px' }} />
-            <div style={{ fontWeight: 700, fontSize: 17, color: '#1A1814', marginBottom: 16 }}>Quick Add</div>
-            <button onClick={() => { setShowQuickAdd(false); setShowAddTask(true); }} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '14px 16px', borderRadius: 14, background: '#F8F6F1', border: '1px solid #EAE6DE', marginBottom: 10, textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: ac + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}>{I.Task(20)}</div>
-              <div><div style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Add Task</div><div style={{ fontSize: 12, color: '#A09C96', marginTop: 2 }}>Create a new task</div></div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#1A1814', marginBottom: 16 }}>Quick Add</div>
+            <button onClick={() => { setShowQuickAdd(false); setShowAddTask(true); }} style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '14px 16px', borderRadius: 14, background: '#F8F6F1', border: '1px solid #EAE6DE', marginBottom: 10, textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 14, background: ac + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}>{I.Task(20)}</div>
+              <div><div style={{ fontWeight: 600, fontSize: 13, color: '#1A1814' }}>Add Task</div><div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>Create a new task</div></div>
             </button>
-            <button onClick={() => { setShowQuickAdd(false); setShowQuickMeas(true); }} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '14px 16px', borderRadius: 14, background: '#F8F6F1', border: '1px solid #EAE6DE', textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7BAF9218', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7BAF92' }}>{I.BarChart(20)}</div>
-              <div><div style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Log Measurements</div><div style={{ fontSize: 12, color: '#A09C96', marginTop: 2 }}>Body tracking entry</div></div>
+            <button onClick={() => { setShowQuickAdd(false); setShowQuickMeas(true); }} style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '14px 16px', borderRadius: 14, background: '#F8F6F1', border: '1px solid #EAE6DE', textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 14, background: '#7BAF9218', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7BAF92' }}>{I.BarChart(20)}</div>
+              <div><div style={{ fontWeight: 600, fontSize: 13, color: '#1A1814' }}>Log Measurements</div><div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>Body tracking entry</div></div>
             </button>
           </div>
         </div>
@@ -368,28 +366,25 @@ export default function App() {
         <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <div>
-              <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
+              <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
             </div>
             {ALL_TABS.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 20, background: tab === t.id ? ac : 'transparent', color: tab === t.id ? '#FFFFFF' : '#706C66', fontSize: 13, fontWeight: 600, transition: 'all .15s', cursor: 'pointer' }}>
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 20, background: tab === t.id ? ac : 'transparent', color: tab === t.id ? '#FFFFFF' : '#706C66', fontSize: 13, fontWeight: 600, transition: 'all .15s', cursor: 'pointer' }}>
                 {t.icon(14)}{t.label}
               </button>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
-            <button onClick={() => setTab('setup')} title="Settings" style={{ width: 30, height: 30, borderRadius: '50%', background: tab === 'setup' ? ac + '18' : 'transparent', border: '1px solid #EAE6DE', color: tab === 'setup' ? ac : '#A09C96', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              {I.Settings(15)}
-            </button>
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 {cu.name[0]}
               </button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #F0EDE8', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1A1814' }}>{cu.name}</div>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
                   <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
@@ -401,7 +396,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            <button onClick={() => setShowQuickAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => setShowQuickAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               {I.Plus(13)} Add
             </button>
             <button onClick={loadData} style={{ ...C.nb }}>{I.Refresh()}</button>
@@ -413,22 +408,19 @@ export default function App() {
       {isMobile && (
         <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
+            <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
-            <button onClick={() => setTab('setup')} title="Settings" style={{ width: 30, height: 30, borderRadius: '50%', background: tab === 'setup' ? ac + '18' : 'transparent', border: '1px solid #EAE6DE', color: tab === 'setup' ? ac : '#A09C96', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              {I.Settings(15)}
-            </button>
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 {cu.name[0]}
               </button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 16, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #F0EDE8', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1A1814' }}>{cu.name}</div>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                  <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
                   <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
@@ -447,7 +439,7 @@ export default function App() {
 
       {/* Toast notification — fixed above bottom nav, auto-dismisses */}
       {error && (
-        <div className="fadeUp" style={{ position: 'fixed', bottom: isMobile ? 100 : 24, left: '50%', transform: 'translateX(-50%)', background: '#1A1814', color: '#FFFFFF', padding: '10px 16px', borderRadius: 12, fontSize: 13, fontWeight: 500, zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+        <div className="fadeUp" style={{ position: 'fixed', bottom: isMobile ? 100 : 24, left: '50%', transform: 'translateX(-50%)', background: '#1A1814', color: '#FFFFFF', padding: '10px 16px', borderRadius: 14, fontSize: 13, fontWeight: 500, zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
           <span style={{ color: '#C47878' }}>⚠</span>{error}
           <button onClick={() => setError(null)} style={{ color: '#A09C96', marginLeft: 4, cursor: 'pointer' }}>{I.X()}</button>
         </div>
@@ -459,7 +451,7 @@ export default function App() {
         {loading ? (
           <div className="fade">
             {[140, 80, 200, 120].map((h, i) => (
-              <div key={i} style={{ borderRadius: 16, background: '#EAE6DE', height: h, marginBottom: 12, overflow: 'hidden', position: 'relative' }}>
+              <div key={i} style={{ borderRadius: 14, background: '#EAE6DE', height: h, marginBottom: 12, overflow: 'hidden', position: 'relative' }}>
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(245,243,238,0.7) 50%, transparent 100%)', animation: 'shimmer 1.4s ease-in-out infinite' }} />
               </div>
             ))}
@@ -480,7 +472,7 @@ export default function App() {
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1px solid #EAE6DE', display: 'flex', alignItems: 'center', padding: '8px 0 24px', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)' }}>
           {LEFT_TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#C4C0BA', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#A09C96', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
               {t.icon(tab === t.id ? 22 : 20)}{t.label}
             </button>
           ))}
@@ -490,7 +482,7 @@ export default function App() {
             </button>
           </div>
           {RIGHT_TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#C4C0BA', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#A09C96', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
               {t.icon(tab === t.id ? 22 : 20)}{t.label}
             </button>
           ))}

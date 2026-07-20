@@ -38,13 +38,13 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
       </div>
 
       {/* Section filter pills */}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
         {['All', ...TASK_SECTIONS].map(s => {
           const cnt = s === 'All' ? myTasks.filter(t => t.status === 'active').length : myTasks.filter(t => t.status === 'active' && t.section === s).length;
           const active = activeSection === s;
           const col = SC[s] || ac;
           return (
-            <button key={s} onClick={() => setActiveSection(s)} style={{ flexShrink: 0, padding: '6px 13px', borderRadius: 20, border: '1px solid ' + (active ? col + '55' : '#EAE6DE'), background: active ? col : '#FFFFFF', color: active ? '#FFFFFF' : '#706C66', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'all .15s' }}>
+            <button key={s} onClick={() => setActiveSection(s)} style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 20, border: '1px solid ' + (active ? col + '55' : '#EAE6DE'), background: active ? col : '#FFFFFF', color: active ? '#FFFFFF' : '#706C66', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'all .15s' }}>
               {s}{cnt > 0 ? ` ·${cnt}` : ''}
             </button>
           );
@@ -65,7 +65,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
       {/* Completed tasks */}
       {doneTasks.length > 0 && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '24px 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0 12px' }}>
             <div style={{ flex: 1, height: 1, background: '#EAE6DE' }} />
             <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 1 }}>COMPLETED · {doneTasks.length}</div>
             <div style={{ flex: 1, height: 1, background: '#EAE6DE' }} />

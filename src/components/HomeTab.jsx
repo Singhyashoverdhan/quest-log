@@ -88,7 +88,7 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
           {I.Left(13)}
         </button>
         <div style={{ textAlign: 'center', minWidth: 120 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#1A1814' }}>{dayLabel}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1814' }}>{dayLabel}</div>
           {dayOffset !== 0 && <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 1 }}>{fmtD(activeDate)}</div>}
         </div>
         <button onClick={() => onDayChange(Math.min(dayOffset + 1, 0))} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: dayOffset >= 0 ? 0.2 : 1 }} disabled={dayOffset >= 0}>
@@ -97,10 +97,10 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
       </div>
 
       {/* Stats — ring + flat stats in one card */}
-      <div style={C.card({ padding: '12px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 })}>
+      <div style={C.card({ padding: '12px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 })}>
         <XPRing pct={dayPct} xp={dayXP} color={ac} size={130} />
         <div style={{ width: 1, alignSelf: 'stretch', background: '#EAE6DE', flexShrink: 0 }} />
-        <div style={{ flex: 1, display: 'flex', alignSelf: 'stretch', paddingTop: 2, paddingBottom: 2, gap: 6 }}>
+        <div style={{ flex: 1, display: 'flex', alignSelf: 'stretch', paddingTop: 2, paddingBottom: 2, gap: 8 }}>
           {[
             [
               { label: 'HABITS',   val: habitsDone, suffix: `/${habitsTotal}`, color: habitsDone === habitsTotal && habitsTotal > 0 ? '#7BAF92' : '#1A1814' },
@@ -114,9 +114,9 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
             <div key={ci} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
               {col.map(s => (
                 <div key={s.label}>
-                  <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 1, marginBottom: 5 }}>{s.label}</div>
+                  <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 1, marginBottom: 5 }}>{s.label}</div>
                   <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1, color: s.color }}>
-                    {s.val}<span className="mono" style={{ fontSize: 12, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
+                    {s.val}<span className="mono" style={{ fontSize: 11, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
                   </div>
                 </div>
               ))}
@@ -127,15 +127,15 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
 
       {/* 7-day bar chart */}
       <div style={C.card({ padding: '12px 12px 8px', marginBottom: 12 })}>
-        <div className="mono" style={{ fontSize: 8, color: '#A09C96', letterSpacing: 1.5, marginBottom: 10 }}>LAST 7 DAYS</div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 44 }}>
+        <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 1.5, marginBottom: 10 }}>LAST 7 DAYS</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 44 }}>
           {last7.map((d, idx) => {
             const isActive = d.key === activeDate;
             const barH = Math.max(3, Math.round((d.pct / maxBar) * 32));
             return (
               <div key={d.key} onClick={() => onDayChange(idx - 6)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                <div style={{ width: '100%', borderRadius: 4, height: barH, background: isActive ? ac : d.pct === 0 ? '#F0EDE8' : ac + '55', transition: 'height .3s', outline: isActive ? `2px solid ${ac}` : 'none', outlineOffset: 1 }} />
-                <div className="mono" style={{ fontSize: 8, color: isActive ? ac : '#C4C0BA', fontWeight: isActive ? 700 : 400 }}>
+                <div style={{ width: '100%', borderRadius: 4, height: barH, background: isActive ? ac : d.pct === 0 ? '#EAE6DE' : ac + '55', transition: 'height .3s', outline: isActive ? `2px solid ${ac}` : 'none', outlineOffset: 1 }} />
+                <div className="mono" style={{ fontSize: 10, color: isActive ? ac : '#A09C96', fontWeight: isActive ? 700 : 400 }}>
                   {new Date(d.key + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'narrow' })}
                 </div>
               </div>
@@ -148,17 +148,17 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
       {isToday && (overdueTasks.length > 0 || dueTodayTasks.length > 0) && (
         <div style={{ marginBottom: 10 }}>
           {overdueTasks.length > 0 && (
-            <div style={{ padding: '8px 12px', borderRadius: 10, background: '#C4787808', border: '1px solid #C4787830', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ padding: '8px 12px', borderRadius: 8, background: '#C4787808', border: '1px solid #C4787830', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C47878', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: '#C47878', fontWeight: 600 }}>{overdueTasks.length} overdue</span>
-              <span style={{ fontSize: 12, color: '#A09C96', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>— {overdueTasks.map(t => t.title).join(', ')}</span>
+              <span style={{ fontSize: 11, color: '#C47878', fontWeight: 600 }}>{overdueTasks.length} overdue</span>
+              <span style={{ fontSize: 11, color: '#A09C96', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>— {overdueTasks.map(t => t.title).join(', ')}</span>
             </div>
           )}
           {dueTodayTasks.length > 0 && (
-            <div style={{ padding: '8px 12px', borderRadius: 10, background: '#C9A97008', border: '1px solid #C9A97030', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ padding: '8px 12px', borderRadius: 8, background: '#C9A97008', border: '1px solid #C9A97030', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: ac, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: ac, fontWeight: 600 }}>{dueTodayTasks.length} due today</span>
-              <span style={{ fontSize: 12, color: '#A09C96', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>— {dueTodayTasks.map(t => t.title).join(', ')}</span>
+              <span style={{ fontSize: 11, color: ac, fontWeight: 600 }}>{dueTodayTasks.length} due today</span>
+              <span style={{ fontSize: 11, color: '#A09C96', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>— {dueTodayTasks.map(t => t.title).join(', ')}</span>
             </div>
           )}
         </div>
@@ -168,8 +168,8 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
       {isToday && (
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Tasks <span className="mono" style={{ fontSize: 11, color: '#A09C96', fontWeight: 400 }}>· {myTasks.length} active</span></div>
-            <button onClick={onAddTask} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 11px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{I.Plus(9)} Add</button>
+            <div style={{ fontWeight: 600, fontSize: 13, color: '#1A1814' }}>Tasks <span className="mono" style={{ fontSize: 11, color: '#A09C96', fontWeight: 400 }}>· {myTasks.length} active</span></div>
+            <button onClick={onAddTask} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{I.Plus(9)} Add</button>
           </div>
           {myTasks.length === 0
             ? <div style={C.card({ padding: '14px', textAlign: 'center', color: '#A09C96', fontSize: 13 })}>All clear — no active tasks.</div>
@@ -178,7 +178,7 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
                 return <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={u} onComplete={() => setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} compact />;
               })
           }
-          {myTasks.length > 6 && <div className="mono" style={{ fontSize: 11, color: '#A09C96', textAlign: 'center', marginTop: 5 }}>+{myTasks.length - 6} more · open Tasks tab</div>}
+          {myTasks.length > 6 && <div className="mono" style={{ fontSize: 11, color: '#A09C96', textAlign: 'center', marginTop: 4 }}>+{myTasks.length - 6} more · open Tasks tab</div>}
         </div>
       )}
 

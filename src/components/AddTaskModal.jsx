@@ -29,7 +29,7 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
 
   return (
     <Modal title="New Task" onClose={onClose}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input
           key={titleErr ? 'err' : 'ok'}
           placeholder="Task title *"
@@ -39,26 +39,26 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
           style={C.inp({ border: titleErr ? '1px solid #C47878' : undefined })}
           autoFocus
         />
-        {titleErr && <div style={{ fontSize: 11, color: '#C47878', marginTop: -6 }}>Title is required</div>}
+        {titleErr && <div style={{ fontSize: 11, color: '#C47878', marginTop: -8 }}>Title is required</div>}
         <textarea placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} style={{ ...C.inp(), resize: 'none', height: 68 }} />
         <select value={section} onChange={e => setSection(e.target.value)} style={{ ...C.inp(), cursor: 'pointer' }}>
           {TASK_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 5 }}>Due Date</div>
+            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>Due Date</div>
             <input type="date" value={due} onChange={e => setDue(e.target.value)} style={C.inp({ fontSize: 13 })} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 5 }}>Est. Time (mins)</div>
+            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>Est. Time (mins)</div>
             <input type="number" placeholder="60" value={est} onChange={e => setEst(e.target.value)} style={C.inp({ fontSize: 13 })} />
           </div>
         </div>
         <div>
           <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 8 }}>Checklist</div>
           {subs.map((st, i) => (
-            <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 15, height: 15, borderRadius: 4, border: '1px solid #D8D4CC', flexShrink: 0 }} />
+            <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid #EAE6DE', flexShrink: 0 }} />
               <span style={{ flex: 1, fontSize: 13, color: '#1A1814' }}>{st.title}</span>
               <button onClick={() => setSubs(s => s.filter((_, j) => j !== i))} style={{ color: '#C47878', display: 'flex' }}>{I.X()}</button>
             </div>
@@ -71,7 +71,7 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
         <button onClick={() => setStarred(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6, color: starred ? '#C9A970' : '#A09C96', fontSize: 13, alignSelf: 'flex-start' }}>
           {I.Star(14, starred ? '#C9A970' : 'none')} {starred ? 'Starred' : 'Star'}
         </button>
-        <button onClick={handleSave} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
+        <button onClick={handleSave} style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
           Add Task
         </button>
       </div>

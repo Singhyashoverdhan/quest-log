@@ -43,8 +43,8 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
         </div>
         {!readOnly && (
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setShowTarget(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 13px', borderRadius: 20, border: '1px solid #EAE6DE', background: '#FFFFFF', color: '#706C66', fontSize: 12, fontWeight: 500, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>{I.Target()} Targets</button>
-            <button onClick={() => setShowLog(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 13px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{I.Plus(12)} Log</button>
+            <button onClick={() => setShowTarget(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', borderRadius: 20, border: '1px solid #EAE6DE', background: '#FFFFFF', color: '#706C66', fontSize: 11, fontWeight: 500, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>{I.Target()} Targets</button>
+            <button onClick={() => setShowLog(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{I.Plus(12)} Log</button>
           </div>
         )}
       </div>
@@ -52,7 +52,7 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
       {/* Area selector pills */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
         {MEASUREMENT_AREAS.map(a => (
-          <button key={a.name} onClick={() => setSelectedArea(a.name)} style={{ flexShrink: 0, padding: '6px 13px', borderRadius: 20, border: '1px solid ' + (selectedArea === a.name ? ac + '66' : '#EAE6DE'), background: selectedArea === a.name ? ac : '#FFFFFF', color: selectedArea === a.name ? '#FFFFFF' : '#706C66', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <button key={a.name} onClick={() => setSelectedArea(a.name)} style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 20, border: '1px solid ' + (selectedArea === a.name ? ac + '66' : '#EAE6DE'), background: selectedArea === a.name ? ac : '#FFFFFF', color: selectedArea === a.name ? '#FFFFFF' : '#706C66', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             {a.name}
           </button>
         ))}
@@ -60,19 +60,19 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
 
       {/* Chart card */}
       <div style={C.card({ padding: '18px', marginBottom: 16 })}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: '#1A1814' }}>{selectedArea}</div>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#1A1814' }}>{selectedArea}</div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
             {latestVals[selectedArea]?.val != null && (
               <div style={{ textAlign: 'right' }}>
-                <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 0.5, marginBottom: 2 }}>CURRENT</div>
+                <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 0.5, marginBottom: 2 }}>CURRENT</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: ac, lineHeight: 1 }}>{latestVals[selectedArea].val}</div>
               </div>
             )}
             {userT[selectedArea] != null && (
               <div style={{ textAlign: 'right' }}>
-                <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 0.5, marginBottom: 2 }}>TARGET</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: '#C4C0BA', lineHeight: 1 }}>{userT[selectedArea]}</div>
+                <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 0.5, marginBottom: 2 }}>TARGET</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#A09C96', lineHeight: 1 }}>{userT[selectedArea]}</div>
               </div>
             )}
           </div>
@@ -86,7 +86,7 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
               return (
                 <>
                   <Sparkline data={sparkData} color={ac} W={W} H={80} target={userT[selectedArea] ?? null} />
-                  <div style={{ borderTop: '1px solid #F0EDE8', marginTop: 10, paddingTop: 8, position: 'relative', width: W, height: 42 }}>
+                  <div style={{ borderTop: '1px solid #EAE6DE', marginTop: 12, paddingTop: 8, position: 'relative', width: W, height: 42 }}>
                     {sparkData.map((d, i) => (
                       <div key={d.d} style={{ position: 'absolute', left: xOf(i), transform: 'translateX(-50%)', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: ac }}>{d.v}</div>
@@ -122,12 +122,12 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
             <div key={a.name} onClick={() => setSelectedArea(a.name)} style={C.card({ padding: '12px', cursor: 'pointer', outline: isSelected ? `2px solid ${ac}` : 'none', outlineOffset: 0, transition: 'outline .15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
               <div>
                 <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name}</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: l?.val != null ? '#1A1814' : '#D8D4CC', lineHeight: 1 }}>{l?.val ?? '—'}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: l?.val != null ? '#1A1814' : '#A09C96', lineHeight: 1 }}>{l?.val ?? '—'}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 {change != null
                   ? <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: changeCol }}>{change > 0 ? '↑' : change < 0 ? '↓' : '—'} {Math.abs(change)}</div>
-                  : <div className="mono" style={{ fontSize: 11, color: '#C4C0BA' }}>—</div>}
+                  : <div className="mono" style={{ fontSize: 11, color: '#A09C96' }}>—</div>}
                 {dist != null && (() => {
                   const pct = Math.round(100 - Math.abs(dist) / t * 100);
                   return (

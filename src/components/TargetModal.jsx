@@ -7,8 +7,8 @@ export default function TargetModal({ cur, onSave, onClose }) {
   const [vals, setVals] = React.useState({ ...cur });
   return (
     <Modal title="Set Targets" onClose={onClose} wide>
-      <div style={{ fontSize: 12, color: '#A09C96', marginBottom: 14 }}>Set once, edit anytime. These are your ideal values.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+      <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 16 }}>Set once, edit anytime. These are your ideal values.</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         {MEASUREMENT_AREAS.map(a => (
           <div key={a.name}>
             <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name}</div>
@@ -16,7 +16,7 @@ export default function TargetModal({ cur, onSave, onClose }) {
           </div>
         ))}
       </div>
-      <button onClick={() => onSave(vals)} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Save Targets</button>
+      <button onClick={() => onSave(vals)} style={{ width: '100%', padding: '12px', borderRadius: 14, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Save Targets</button>
     </Modal>
   );
 }

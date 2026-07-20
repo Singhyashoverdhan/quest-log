@@ -19,22 +19,22 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
   }, [confirmDelete]);
 
   return (
-    <div style={{ marginBottom: compact ? 6 : 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: `1px solid ${done ? '#EAE6DE' : urgCol ? urgCol + '44' : '#EAE6DE'}`, background: done ? '#FAFAF8' : urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
-        <button onClick={!done ? onComplete : undefined} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${done ? '#7BAF92' : col}`, background: done ? '#7BAF92' : 'transparent', flexShrink: 0, marginTop: 1, cursor: done ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF' }}>
+    <div style={{ marginBottom: compact ? 8 : 8 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 12px' : '12px 12px', borderRadius: 14, border: `1px solid ${done ? '#EAE6DE' : urgCol ? urgCol + '44' : '#EAE6DE'}`, background: done ? '#F8F6F1' : urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
+        <button onClick={!done ? onComplete : undefined} style={{ width: 18, height: 18, borderRadius: 8, border: `1.5px solid ${done ? '#7BAF92' : col}`, background: done ? '#7BAF92' : 'transparent', flexShrink: 0, marginTop: 1, cursor: done ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF' }}>
           {done && I.Check(10)}
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ fontSize: compact ? 13 : 14, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: done ? '#A09C96' : '#1A1814', textDecoration: done ? 'line-through' : 'none' }}>{task.title}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: compact ? 13 : 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: done ? '#A09C96' : '#1A1814', textDecoration: done ? 'line-through' : 'none' }}>{task.title}</span>
           </div>
           {!compact && task.notes && <div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>{task.notes}</div>}
-          <div style={{ display: 'flex', gap: 5, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 4, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             {!compact && <span style={C.pill(col)}>{task.section}</span>}
             {task.dueDate && <span className="mono" style={{ fontSize: 10, color: urgCol || '#A09C96', fontWeight: urgCol ? 600 : 400 }}>
               {urgency === 'overdue' ? '⚠ ' : ''}{fmtDS(task.dueDate)}
             </span>}
-            {task.estMins > 0 && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA', display: 'flex', alignItems: 'center', gap: 3 }}>{I.Clock(10)} {fmtM(task.estMins)}</span>}
+            {task.estMins > 0 && <span className="mono" style={{ fontSize: 10, color: '#A09C96', display: 'flex', alignItems: 'center', gap: 3 }}>{I.Clock(10)} {fmtM(task.estMins)}</span>}
           </div>
           {task.subtasks.length > 0 && (
             <button onClick={() => setOpen(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, color: '#A09C96', fontSize: 11, cursor: 'pointer' }}>
@@ -42,28 +42,28 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
             </button>
           )}
           {open && task.subtasks.map(st => (
-            <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5 }}>
-              <button onClick={() => !readOnly && onToggleSub(task.id, st.id, task.user)} style={{ width: 13, height: 13, borderRadius: 3, border: '1.5px solid ' + (st.done ? '#7BAF92' : '#C4C0BA'), background: st.done ? '#7BAF92' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#FFFFFF', cursor: readOnly ? 'default' : 'pointer' }}>
+            <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <button onClick={() => !readOnly && onToggleSub(task.id, st.id, task.user)} style={{ width: 13, height: 13, borderRadius: 8, border: '1.5px solid ' + (st.done ? '#7BAF92' : '#EAE6DE'), background: st.done ? '#7BAF92' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#FFFFFF', cursor: readOnly ? 'default' : 'pointer' }}>
                 {st.done && I.Check(8)}
               </button>
-              <span style={{ fontSize: 11, color: st.done ? '#C4C0BA' : '#706C66', textDecoration: st.done ? 'line-through' : 'none' }}>{st.title}</span>
+              <span style={{ fontSize: 11, color: st.done ? '#A09C96' : '#706C66', textDecoration: st.done ? 'line-through' : 'none' }}>{st.title}</span>
             </div>
           ))}
         </div>
 
         {/* Right-side actions */}
         {!readOnly && done && onReopen && (
-          <button onClick={() => onReopen(task.id, task.user)} title="Re-open task" style={{ flexShrink: 0, padding: '8px', margin: '-8px -8px -8px 0', color: '#A09C96', fontSize: 16, lineHeight: 1, cursor: 'pointer' }}>↩</button>
+          <button onClick={() => onReopen(task.id, task.user)} title="Re-open task" style={{ flexShrink: 0, padding: '8px', margin: '-8px -8px -8px 0', color: '#A09C96', fontSize: 15, lineHeight: 1, cursor: 'pointer' }}>↩</button>
         )}
         {!readOnly && !done && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
             <button onClick={() => onStar && onStar(task.id, task.user)} style={{ padding: 8, margin: -8, cursor: 'pointer' }}>
-              {I.Star(11, task.starred ? '#C9A970' : 'none', task.starred ? 'none' : '#D8D4CC')}
+              {I.Star(11, task.starred ? '#C9A970' : 'none', task.starred ? 'none' : '#EAE6DE')}
             </button>
             {onDelete && (
               confirmDelete
-                ? <button onClick={() => onDelete(task.id, task.user)} style={{ marginLeft: 6, padding: '3px 8px', borderRadius: 6, background: '#C47878', color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Delete?</button>
-                : <button onClick={() => setConfirmDelete(true)} style={{ marginLeft: 4, padding: '6px 4px', color: '#C4C0BA', fontSize: 16, lineHeight: 1, cursor: 'pointer', letterSpacing: 1 }}>···</button>
+                ? <button onClick={() => onDelete(task.id, task.user)} style={{ marginLeft: 6, padding: '4px 8px', borderRadius: 8, background: '#C47878', color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Delete?</button>
+                : <button onClick={() => setConfirmDelete(true)} style={{ marginLeft: 4, padding: '6px 4px', color: '#A09C96', fontSize: 15, lineHeight: 1, cursor: 'pointer', letterSpacing: 1 }}>···</button>
             )}
           </div>
         )}

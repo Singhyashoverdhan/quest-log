@@ -69,13 +69,13 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
             {isToday ? fmtD(activeDate) : 'backdating'}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button onClick={() => setDayOffset(o => Math.max(o - 1, -7))} disabled={dayOffset <= -7} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: dayOffset <= -7 ? 0.3 : 1 }}>
             {I.Left(13)}
           </button>
-          <div style={C.card({ padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: 4 })}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: ac }}>{totalDone}</span>
-            <span className="mono" style={{ fontSize: 12, color: '#A09C96' }}>/ {totalActs}</span>
+          <div style={C.card({ padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 4 })}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: ac }}>{totalDone}</span>
+            <span className="mono" style={{ fontSize: 11, color: '#A09C96' }}>/ {totalActs}</span>
           </div>
           <button onClick={() => setDayOffset(o => Math.min(o + 1, 0))} disabled={isToday} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: isToday ? 0.2 : 1 }}>
             {I.Right(13)}
@@ -84,7 +84,7 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 6, background: '#F0EDE8', borderRadius: 6, marginBottom: 20, overflow: 'hidden' }}>
+      <div style={{ height: 6, background: '#EAE6DE', borderRadius: 6, marginBottom: 20, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${todayPct}%`, background: ac, borderRadius: 6, transition: 'width .5s' }} />
       </div>
 
@@ -92,7 +92,7 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
         const col = SC[cat.section] || ac;
         return (
           <div key={cat.name} style={{ marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: col }} />
               <span className="mono" style={{ fontSize: 10, color: '#A09C96', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 600 }}>{cat.section}</span>
             </div>
@@ -105,29 +105,29 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
                 <React.Fragment key={act.name}>
                   <button
                     onClick={() => handleCheck(cat.name, act.name, act.xp, act.trackTime)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 14px', borderRadius: isPending ? '14px 14px 0 0' : 14, marginBottom: isPending ? 0 : 8, border: '1px solid ' + (visual ? col + '44' : '#EAE6DE'), background: visual ? col + '0C' : '#FFFFFF', textAlign: 'left', transition: 'all .12s', cursor: 'pointer', boxShadow: visual ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 16px', borderRadius: isPending ? '14px 14px 0 0' : 14, marginBottom: isPending ? 0 : 8, border: '1px solid ' + (visual ? col + '44' : '#EAE6DE'), background: visual ? col + '0C' : '#FFFFFF', textAlign: 'left', transition: 'all .12s', cursor: 'pointer', boxShadow: visual ? 'none' : '0 1px 3px rgba(0,0,0,0.04)' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 20, height: 20, borderRadius: 6, border: '1.5px solid ' + (visual ? col : '#D8D4CC'), background: visual ? col : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#FFFFFF', transition: 'all .15s' }}>
+                      <div style={{ width: 20, height: 20, borderRadius: 8, border: '1.5px solid ' + (visual ? col : '#EAE6DE'), background: visual ? col : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#FFFFFF', transition: 'all .15s' }}>
                         {visual && I.Check(11)}
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, color: visual ? '#1A1814' : '#706C66', fontWeight: visual ? 600 : 400 }}>{act.name}</div>
+                        <div style={{ fontSize: 13, color: visual ? '#1A1814' : '#706C66', fontWeight: visual ? 600 : 400 }}>{act.name}</div>
                         {act.trackTime && state.mins > 0 && <div className="mono" style={{ fontSize: 10, color: col, marginTop: 1 }}>{fmtM(state.mins)}</div>}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {act.trackTime && !visual && isToday && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA' }}>timed</span>}
-                      <span className="mono" style={{ fontSize: 12, color: visual ? col : '#C4C0BA', fontWeight: 600 }}>+{act.xp}</span>
+                      {act.trackTime && !visual && isToday && <span className="mono" style={{ fontSize: 10, color: '#A09C96' }}>timed</span>}
+                      <span className="mono" style={{ fontSize: 11, color: visual ? col : '#A09C96', fontWeight: 600 }}>+{act.xp}</span>
                     </div>
                   </button>
                   {isPending && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 12px', marginBottom: 8, background: '#FFFFFF', borderRadius: '0 0 14px 14px', border: '1px solid ' + col + '44', borderTop: '1px solid #F0EDE8' }}>
-                      <span style={{ fontSize: 12, color: '#A09C96', flexShrink: 0 }}>Time (mins)</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px 12px', marginBottom: 8, background: '#FFFFFF', borderRadius: '0 0 14px 14px', border: '1px solid ' + col + '44', borderTop: '1px solid #EAE6DE' }}>
+                      <span style={{ fontSize: 11, color: '#A09C96', flexShrink: 0 }}>Time (mins)</span>
                       <input type="number" placeholder="optional" value={timeInputVal} onChange={e => setTimeInputVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitTime()} autoFocus
-                        style={{ flex: 1, maxWidth: 80, padding: '5px 9px', borderRadius: 8, border: '1px solid #EAE6DE', background: '#F8F6F1', color: '#1A1814', fontSize: 13, outline: 'none' }} />
-                      <button onClick={submitTime} style={{ padding: '5px 14px', borderRadius: 8, background: col, color: '#FFFFFF', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Done</button>
-                      <button onClick={() => { toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, 0, activeDate); setPendingTime(null); setTimeInputVal(''); }} style={{ fontSize: 12, color: '#A09C96', cursor: 'pointer' }}>skip</button>
+                        style={{ flex: 1, maxWidth: 80, padding: '4px 8px', borderRadius: 8, border: '1px solid #EAE6DE', background: '#F8F6F1', color: '#1A1814', fontSize: 13, outline: 'none' }} />
+                      <button onClick={submitTime} style={{ padding: '4px 12px', borderRadius: 8, background: col, color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Done</button>
+                      <button onClick={() => { toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, 0, activeDate); setPendingTime(null); setTimeInputVal(''); }} style={{ fontSize: 11, color: '#A09C96', cursor: 'pointer' }}>skip</button>
                     </div>
                   )}
                 </React.Fragment>
