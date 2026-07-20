@@ -18,14 +18,12 @@ const SC = Object.fromEntries(SECTIONS.map(s => [s.name, s.color]));
 function urgency(task) {
   if (!task.dueDate) return 'none';
   const due = task.dueDate;
-  if (due < TODAY) return 'overdue';
-  if (due === TODAY) return 'today';
-  const tomorrow = getDK(-1 * -1); // getDK(1)
-  // compute tomorrow manually
-  const d = new Date(TODAY + 'T00:00:00');
+  const today = getDK(0);
+  if (due < today) return 'overdue';
+  if (due === today) return 'today';
+  const d = new Date(today + 'T00:00:00');
   d.setDate(d.getDate() + 1);
-  const tom = d.toISOString().slice(0, 10);
-  if (due === tom) return 'soon';
+  if (due === d.toISOString().slice(0, 10)) return 'soon';
   return 'none';
 }
 
