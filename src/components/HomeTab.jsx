@@ -98,21 +98,30 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
         </button>
       </div>
 
-      {/* Stats — compact 2×2 grid beside ring */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-        <XPRing pct={dayPct} xp={dayXP} color={ac} size={82} />
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+      {/* Stats — ring + flat stats in one card */}
+      <div style={C.card({ padding: '14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 })}>
+        <XPRing pct={dayPct} xp={dayXP} color={ac} size={96} />
+        <div style={{ width: 1, alignSelf: 'stretch', background: '#EAE6DE', flexShrink: 0 }} />
+        <div style={{ flex: 1, display: 'flex', alignSelf: 'stretch', paddingTop: 2, paddingBottom: 2 }}>
           {[
-            { label: 'HABITS',    val: habitsDone, suffix: `/${habitsTotal}`, color: habitsDone === habitsTotal && habitsTotal > 0 ? '#7BAF92' : '#1A1814' },
-            { label: 'STREAK',    val: streak,      suffix: 'd',              color: streak >= 3 ? ac : '#1A1814' },
-            { label: 'WEEK XP',   val: weekXP,      suffix: ' xp',            color: '#1A1814' },
-            { label: 'MONTH XP',  val: monthXP,     suffix: ' xp',            color: '#1A1814' },
-          ].map(s => (
-            <div key={s.label} style={C.card({ padding: '8px 10px' })}>
-              <div className="mono" style={{ fontSize: 8, color: '#A09C96', letterSpacing: 1, marginBottom: 3 }}>{s.label}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: s.color }}>
-                {s.val}<span className="mono" style={{ fontSize: 10, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
-              </div>
+            [
+              { label: 'HABITS',   val: habitsDone, suffix: `/${habitsTotal}`, color: habitsDone === habitsTotal && habitsTotal > 0 ? '#7BAF92' : '#1A1814' },
+              { label: 'WEEK XP',  val: weekXP,     suffix: ' xp',            color: '#1A1814' },
+            ],
+            [
+              { label: 'STREAK',   val: streak,     suffix: ' d',             color: streak >= 3 ? ac : '#1A1814' },
+              { label: 'MONTH XP', val: monthXP,    suffix: ' xp',            color: '#1A1814' },
+            ],
+          ].map((col, ci) => (
+            <div key={ci} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              {col.map(s => (
+                <div key={s.label}>
+                  <div className="mono" style={{ fontSize: 8, color: '#A09C96', letterSpacing: 1, marginBottom: 3 }}>{s.label}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1, color: s.color }}>
+                    {s.val}<span className="mono" style={{ fontSize: 10, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
