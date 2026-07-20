@@ -99,10 +99,10 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
       </div>
 
       {/* Stats — ring + flat stats in one card */}
-      <div style={C.card({ padding: '18px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 })}>
-        <XPRing pct={dayPct} xp={dayXP} color={ac} size={112} />
+      <div style={C.card({ padding: '12px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 })}>
+        <XPRing pct={dayPct} xp={dayXP} color={ac} size={130} />
         <div style={{ width: 1, alignSelf: 'stretch', background: '#EAE6DE', flexShrink: 0 }} />
-        <div style={{ flex: 1, display: 'flex', alignSelf: 'stretch', paddingTop: 2, paddingBottom: 2 }}>
+        <div style={{ flex: 1, display: 'flex', alignSelf: 'stretch', paddingTop: 2, paddingBottom: 2, gap: 6 }}>
           {[
             [
               { label: 'HABITS',   val: habitsDone, suffix: `/${habitsTotal}`, color: habitsDone === habitsTotal && habitsTotal > 0 ? '#7BAF92' : '#1A1814' },
@@ -113,12 +113,12 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
               { label: 'MONTH XP', val: monthXP,    suffix: ' xp',            color: '#1A1814' },
             ],
           ].map((col, ci) => (
-            <div key={ci} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div key={ci} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
               {col.map(s => (
                 <div key={s.label}>
-                  <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 1, marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1, color: s.color }}>
-                    {s.val}<span className="mono" style={{ fontSize: 11, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
+                  <div className="mono" style={{ fontSize: 9, color: '#A09C96', letterSpacing: 1, marginBottom: 5 }}>{s.label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1, color: s.color }}>
+                    {s.val}<span className="mono" style={{ fontSize: 12, color: '#A09C96', fontWeight: 400 }}>{s.suffix}</span>
                   </div>
                 </div>
               ))}
