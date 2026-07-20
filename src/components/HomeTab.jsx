@@ -1,6 +1,6 @@
 import React from 'react';
-import { HABIT_CATEGORIES, TOTAL_XP, USERS, SECTIONS } from '../data';
-import { getDK, fmtD, fmtDS, TODAY } from '../utils';
+import { HABIT_CATEGORIES, TOTAL_XP, SECTIONS } from '../data';
+import { getDK, fmtD } from '../utils';
 import { C } from './ui';
 import { I } from './Icons';
 import XPRing from './XPRing';
@@ -183,34 +183,6 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
           {myTasks.length > 6 && <div className="mono" style={{ fontSize: 11, color: '#A09C96', textAlign: 'center', marginTop: 5 }}>+{myTasks.length - 6} more · open Tasks tab</div>}
         </div>
       )}
-
-      {/* Squad — compact */}
-      <div style={C.card({ padding: '12px 14px', marginBottom: 12 })}>
-        <div className="mono" style={{ fontSize: 8, color: '#A09C96', letterSpacing: 1.5, marginBottom: 10 }}>
-          SQUAD · {isToday ? 'TODAY' : fmtDS(activeDate).toUpperCase()}
-        </div>
-        {USERS.map(u => {
-          const dl = (allLogs[u.name] || {})[activeDate] || {};
-          const xp = computeXP(dl);
-          const pct = TOTAL_XP ? Math.round((xp / TOTAL_XP) * 100) : 0;
-          return (
-            <div key={u.name} style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: u.color + '18', border: `1.5px solid ${pct > 0 ? u.color : '#EAE6DE'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: u.color }}>{u.name[0]}</span>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: '#1A1814' }}>{u.name}</span>
-                  <span className="mono" style={{ fontSize: 9, color: pct > 0 ? u.color : '#C4C0BA' }}>{xp} xp · {pct}%</span>
-                </div>
-                <div style={{ height: 3, background: '#F0EDE8', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: u.color, borderRadius: 3, transition: 'width .5s' }} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       <div style={{ height: 100 }} />
     </div>

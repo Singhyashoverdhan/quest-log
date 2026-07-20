@@ -5,6 +5,9 @@ import { fmtM } from '../utils';
 
 export default function TimeModal({ label, onSubmit, onClose, optional }) {
   const [m, setM] = React.useState('');
+  const mins = parseInt(m) || 0;
+  const hasValue = mins > 0;
+
   return (
     <Modal title="Log Time" onClose={onClose}>
       <div style={{ fontSize: 14, color: '#706C66', marginBottom: 14 }}>"{label}"</div>
@@ -18,9 +21,20 @@ export default function TimeModal({ label, onSubmit, onClose, optional }) {
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        {optional && <button onClick={() => onSubmit(0)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #EAE6DE', color: '#A09C96', fontSize: 14, cursor: 'pointer' }}>Skip</button>}
-        <button onClick={() => onSubmit(parseInt(m) || 0)} style={{ flex: 2, padding: '12px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-          {optional ? 'Done' : 'Confirm'}
+        {optional && (
+          <button
+            onClick={() => onSubmit(0)}
+            style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #EAE6DE', color: hasValue ? '#C4C0BA' : '#706C66', background: hasValue ? '#FAFAF8' : '#FFFFFF', fontSize: 14, cursor: 'pointer', transition: 'all .15s' }}
+          >
+            Skip
+          </button>
+        )}
+        <button
+          onClick={() => onSubmit(mins)}
+          disabled={!optional && !hasValue}
+          style={{ flex: 2, padding: '12px', borderRadius: 12, background: hasValue ? '#C9A970' : optional ? '#EAE6DE' : '#C9A970', color: hasValue ? '#FFFFFF' : optional ? '#A09C96' : '#FFFFFF', fontWeight: 700, fontSize: 14, cursor: !optional && !hasValue ? 'default' : 'pointer', transition: 'all .15s', opacity: !optional && !hasValue ? 0.5 : 1 }}
+        >
+          {hasValue ? `Log ${fmtM(mins)}` : optional ? 'Done' : 'Confirm'}
         </button>
       </div>
     </Modal>

@@ -7,6 +7,7 @@ import { I } from './Icons';
 
 export default function AddTaskModal({ onSave, onClose, defaultSection }) {
   const [title, setTitle] = React.useState('');
+  const [titleErr, setTitleErr] = React.useState(false);
   const [notes, setNotes] = React.useState('');
   const [section, setSection] = React.useState(defaultSection || 'Work');
   const [due, setDue] = React.useState('');
@@ -21,10 +22,24 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
     setSi('');
   };
 
+  function handleSave() {
+    if (!title.trim()) { setTitleErr(true); return; }
+    onSave({ title: title.trim(), notes, section, dueDate: due, estMins: parseInt(est) || 0, starred, subtasks: subs });
+  }
+
   return (
     <Modal title="New Task" onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-        <input placeholder="Task title *" value={title} onChange={e => setTitle(e.target.value)} style={C.inp()} autoFocus />
+        <input
+          key={titleErr ? 'err' : 'ok'}
+          placeholder="Task title *"
+          value={title}
+          onChange={e => { setTitle(e.target.value); if (titleErr) setTitleErr(false); }}
+          className={titleErr ? 'shake' : ''}
+          style={C.inp({ border: titleErr ? '1px solid #C47878' : undefined })}
+          autoFocus
+        />
+        {titleErr && <div style={{ fontSize: 11, color: '#C47878', marginTop: -6 }}>Title is required</div>}
         <textarea placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} style={{ ...C.inp(), resize: 'none', height: 68 }} />
         <select value={section} onChange={e => setSection(e.target.value)} style={{ ...C.inp(), cursor: 'pointer' }}>
           {TASK_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -56,7 +71,7 @@ export default function AddTaskModal({ onSave, onClose, defaultSection }) {
         <button onClick={() => setStarred(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6, color: starred ? '#C9A970' : '#A09C96', fontSize: 13, alignSelf: 'flex-start' }}>
           {I.Star(14, starred ? '#C9A970' : 'none')} {starred ? 'Starred' : 'Star'}
         </button>
-        <button onClick={() => { if (!title.trim()) return; onSave({ title: title.trim(), notes, section, dueDate: due, estMins: parseInt(est) || 0, starred, subtasks: subs }); }} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
+        <button onClick={handleSave} style={{ width: '100%', padding: '13px', borderRadius: 12, background: '#C9A970', color: '#FFFFFF', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4 }}>
           Add Task
         </button>
       </div>

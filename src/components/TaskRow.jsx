@@ -3,12 +3,21 @@ import { C } from './ui';
 import { I } from './Icons';
 import { fmtDS, fmtM } from '../utils';
 
-export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar, compact, readOnly, urgency }) {
+export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar, onDelete, onReopen, compact, readOnly, urgency }) {
   const [open, setOpen] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
   const done = task.status === 'done';
   const col = sc[task.section] || '#A09C96';
   const subDone = task.subtasks.filter(s => s.done).length;
   const urgCol = urgency === 'overdue' ? '#C47878' : urgency === 'today' ? '#C9A970' : urgency === 'soon' ? '#C4B78A' : null;
+
+  // Auto-reset delete confirm after 2s
+  React.useEffect(() => {
+    if (!confirmDelete) return;
+    const t = setTimeout(() => setConfirmDelete(false), 2000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
+
   return (
     <div style={{ marginBottom: compact ? 6 : 8 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: `1px solid ${done ? '#EAE6DE' : urgCol ? urgCol + '44' : '#EAE6DE'}`, background: done ? '#FAFAF8' : urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
@@ -41,7 +50,23 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
             </div>
           ))}
         </div>
-        {!readOnly && <button onClick={() => onStar && onStar(task.id, task.user)} style={{ flexShrink: 0, cursor: 'pointer' }}>{I.Star(11, task.starred ? '#C9A970' : 'none', task.starred ? 'none' : '#D8D4CC')}</button>}
+
+        {/* Right-side actions */}
+        {!readOnly && done && onReopen && (
+          <button onClick={() => onReopen(task.id, task.user)} title="Re-open task" style={{ flexShrink: 0, padding: '8px', margin: '-8px -8px -8px 0', color: '#A09C96', fontSize: 16, lineHeight: 1, cursor: 'pointer' }}>↩</button>
+        )}
+        {!readOnly && !done && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <button onClick={() => onStar && onStar(task.id, task.user)} style={{ padding: 8, margin: -8, cursor: 'pointer' }}>
+              {I.Star(11, task.starred ? '#C9A970' : 'none', task.starred ? 'none' : '#D8D4CC')}
+            </button>
+            {onDelete && (
+              confirmDelete
+                ? <button onClick={() => onDelete(task.id, task.user)} style={{ marginLeft: 6, padding: '3px 8px', borderRadius: 6, background: '#C47878', color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Delete?</button>
+                : <button onClick={() => setConfirmDelete(true)} style={{ marginLeft: 4, padding: '6px 4px', color: '#C4C0BA', fontSize: 16, lineHeight: 1, cursor: 'pointer', letterSpacing: 1 }}>···</button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

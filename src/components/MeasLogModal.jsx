@@ -1,11 +1,11 @@
 import React from 'react';
 import { MEASUREMENT_AREAS } from '../data';
-import { TODAY } from '../utils';
+import { getDK } from '../utils';
 import Modal from './Modal';
 import { C } from './ui';
 
 export default function MeasLogModal({ onSave, onClose, lastVals }) {
-  const [date, setDate] = React.useState(TODAY);
+  const [date, setDate] = React.useState(() => getDK(0));
   const [vals, setVals] = React.useState({});
   return (
     <Modal title="Log Measurements" onClose={onClose} wide>
@@ -19,7 +19,10 @@ export default function MeasLogModal({ onSave, onClose, lastVals }) {
           const last = lastVals?.[a.name];
           return (
             <div key={a.name}>
-              <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name} {last != null && <span style={{ color: '#C4C0BA' }}>· last: {last}</span>}</div>
+              <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 2 }}>
+                {a.name}{last != null && <span style={{ color: '#C4C0BA' }}> · last: {last}</span>}
+              </div>
+              {a.note && <div style={{ fontSize: 10, color: '#C4C0BA', marginBottom: 4 }}>{a.note}</div>}
               <input type="number" step="0.1" placeholder={last != null ? String(last) : '—'} value={vals[a.name] ?? ''} onChange={e => setVals(v => ({ ...v, [a.name]: e.target.value }))} style={C.inp({ fontSize: 13 })} />
             </div>
           );

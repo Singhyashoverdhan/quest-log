@@ -18,7 +18,7 @@ function urgency(task) {
 
 const SC = Object.fromEntries(SECTIONS.map(s => [s.name, s.color]));
 
-export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSubtask, deleteTask, toggleStar, readOnly, viewingUser, ac }) {
+export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSubtask, deleteTask, toggleStar, reopenTask, readOnly, viewingUser, ac }) {
   const [activeSection, setActiveSection] = React.useState('All');
   const [timeModal, setTimeModal] = React.useState(null);
   const uname = viewingUser ? viewingUser.name : cu.name;
@@ -59,7 +59,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
         <div style={{ textAlign: 'center', color: '#A09C96', fontSize: 13, padding: '16px 0 8px' }}>All caught up!</div>
       )}
       {activeTasks.map(t => (
-        <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={urgency(t)} onComplete={() => setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
+        <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={urgency(t)} onComplete={() => setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} onDelete={!readOnly ? deleteTask : undefined} readOnly={readOnly} />
       ))}
 
       {/* Completed tasks */}
@@ -71,7 +71,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
             <div style={{ flex: 1, height: 1, background: '#EAE6DE' }} />
           </div>
           {doneTasks.map(t => (
-            <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={undefined} onComplete={() => {}} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
+            <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={undefined} onComplete={() => {}} onToggleSub={toggleSubtask} onStar={toggleStar} onReopen={!readOnly ? reopenTask : undefined} readOnly={readOnly} />
           ))}
         </>
       )}

@@ -7,10 +7,16 @@ import { I } from './Icons';
 const SC = Object.fromEntries(SECTIONS.map(s => [s.name, s.color]));
 
 export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
+  const [dayOffset, setDayOffset] = React.useState(0);
   const [pendingTime, setPendingTime] = React.useState(null);
   const [timeInputVal, setTimeInputVal] = React.useState('');
-  const today = getDK(0);
-  const myLog = (allLogs[cu.name] || {})[today] || {};
+
+  const activeDate = getDK(dayOffset);
+  const isToday = dayOffset === 0;
+  const myLog = (allLogs[cu.name] || {})[activeDate] || {};
+
+  // Reset pending time input when changing date
+  React.useEffect(() => { setPendingTime(null); setTimeInputVal(''); }, [dayOffset]);
 
   const filteredCats = React.useMemo(() =>
     HABIT_CATEGORIES.map(cat => ({
@@ -26,18 +32,18 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
   function handleCheck(cat, act, xp, trackTime) {
     const already = myLog[`${cat}::${act}`]?.done;
     if (already) {
-      toggle(cat, act, xp, 0);
+      toggle(cat, act, xp, 0, activeDate);
       if (pendingTime?.cat === cat && pendingTime?.act === act) { setPendingTime(null); setTimeInputVal(''); }
-    } else if (trackTime) {
+    } else if (trackTime && isToday) {
       setPendingTime({ cat, act, xp }); setTimeInputVal('');
     } else {
-      toggle(cat, act, xp, 0);
+      toggle(cat, act, xp, 0, activeDate);
     }
   }
 
   function submitTime() {
     if (!pendingTime) return;
-    toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, parseInt(timeInputVal) || 0);
+    toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, parseInt(timeInputVal) || 0, activeDate);
     setPendingTime(null); setTimeInputVal('');
   }
 
@@ -53,14 +59,27 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
 
   return (
     <div className="fade">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      {/* Date navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814' }}>Daily Routine</div>
-          <div className="mono" style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>{fmtD(today)}</div>
+          <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814' }}>
+            {isToday ? 'Daily Routine' : fmtD(activeDate)}
+          </div>
+          <div className="mono" style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>
+            {isToday ? fmtD(activeDate) : 'backdating'}
+          </div>
         </div>
-        <div style={C.card({ padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: 4 })}>
-          <span style={{ fontSize: 22, fontWeight: 700, color: ac }}>{totalDone}</span>
-          <span className="mono" style={{ fontSize: 12, color: '#A09C96' }}>/ {totalActs}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => setDayOffset(o => Math.max(o - 1, -7))} disabled={dayOffset <= -7} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: dayOffset <= -7 ? 0.3 : 1 }}>
+            {I.Left(13)}
+          </button>
+          <div style={C.card({ padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: 4 })}>
+            <span style={{ fontSize: 22, fontWeight: 700, color: ac }}>{totalDone}</span>
+            <span className="mono" style={{ fontSize: 12, color: '#A09C96' }}>/ {totalActs}</span>
+          </div>
+          <button onClick={() => setDayOffset(o => Math.min(o + 1, 0))} disabled={isToday} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: isToday ? 0.2 : 1 }}>
+            {I.Right(13)}
+          </button>
         </div>
       </div>
 
@@ -98,7 +117,7 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {act.trackTime && !visual && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA' }}>timed</span>}
+                      {act.trackTime && !visual && isToday && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA' }}>timed</span>}
                       <span className="mono" style={{ fontSize: 12, color: visual ? col : '#C4C0BA', fontWeight: 600 }}>+{act.xp}</span>
                     </div>
                   </button>
@@ -108,7 +127,7 @@ export default function DailyTab({ cu, allLogs, toggle, ac, selectedHabits }) {
                       <input type="number" placeholder="optional" value={timeInputVal} onChange={e => setTimeInputVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitTime()} autoFocus
                         style={{ flex: 1, maxWidth: 80, padding: '5px 9px', borderRadius: 8, border: '1px solid #EAE6DE', background: '#F8F6F1', color: '#1A1814', fontSize: 13, outline: 'none' }} />
                       <button onClick={submitTime} style={{ padding: '5px 14px', borderRadius: 8, background: col, color: '#FFFFFF', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Done</button>
-                      <button onClick={() => { toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, 0); setPendingTime(null); setTimeInputVal(''); }} style={{ fontSize: 12, color: '#A09C96', cursor: 'pointer' }}>skip</button>
+                      <button onClick={() => { toggle(pendingTime.cat, pendingTime.act, pendingTime.xp, 0, activeDate); setPendingTime(null); setTimeInputVal(''); }} style={{ fontSize: 12, color: '#A09C96', cursor: 'pointer' }}>skip</button>
                     </div>
                   )}
                 </React.Fragment>

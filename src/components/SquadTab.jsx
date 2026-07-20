@@ -83,7 +83,7 @@ export default function SquadTab({ allLogs, challenges, cu, onSetChallenge, onCo
       {/* Picture a day challenge */}
       <div style={C.card({ padding: '16px', marginBottom: 16 })}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          {I.Camera()}<span style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Picture a Day</span>
+          <span style={{ fontWeight: 600, fontSize: 14, color: '#1A1814' }}>Daily Challenge</span>
           {cu.isAdmin && <button onClick={() => setEditing(v => !v)} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 12, border: '1px solid #EAE6DE', background: '#F8F6F1', color: '#706C66', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{challenge?.prompt ? 'Edit' : 'Set'}</button>}
         </div>
         {editing && cu.isAdmin && (
@@ -109,7 +109,7 @@ export default function SquadTab({ allLogs, challenges, cu, onSetChallenge, onCo
             </div>
           </>
         ) : (
-          <div style={{ color: '#A09C96', fontSize: 13 }}>{cu.isAdmin ? 'Set a challenge for today.' : 'No challenge today.'}</div>
+          <div style={{ color: '#A09C96', fontSize: 13 }}>{cu.isAdmin ? 'Set today\'s challenge.' : 'No challenge set for today.'}</div>
         )}
       </div>
 

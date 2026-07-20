@@ -133,6 +133,7 @@ export default function App() {
   }, [measurements, cu?.name]);
 
   React.useEffect(() => { const h = () => setIsMobile(window.innerWidth < 768); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h); }, []);
+  React.useEffect(() => { if (!error) return; const t = setTimeout(() => setError(null), 3500); return () => clearTimeout(t); }, [error]);
   React.useEffect(() => { setSelectedHabits(cu ? loadSelectedHabits(cu.name) : new Set()); }, [cu?.name]);
 
   function login(u) { localStorage.setItem('ql_user', JSON.stringify(u)); setCu(u); setViewingUser(null); }
@@ -186,20 +187,20 @@ export default function App() {
 
   // ── Habit toggle ──────────────────────────────────────────────────────
 
-  const toggle = React.useCallback(async (catName, actName, xp, mins) => {
+  const toggle = React.useCallback(async (catName, actName, xp, mins, dateKey) => {
     if (readOnly) return;
-    const todayDK = getDK(0);
+    const dk = dateKey || getDK(0);
     const key = `${catName}::${actName}`, uname = cu.name;
-    const current = ((allLogs[uname] || {})[todayDK] || {})[key] || { done: false, mins: 0 };
+    const current = ((allLogs[uname] || {})[dk] || {})[key] || { done: false, mins: 0 };
     const next = { done: !current.done, mins: current.done ? 0 : (mins || 0) };
-    setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [todayDK]: { ...((prev[uname] || {})[todayDK] || {}), [key]: next } } }));
+    setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [dk]: { ...((prev[uname] || {})[dk] || {}), [key]: next } } }));
     setSyncing(true);
     const { error: err } = await sb.from('daily_log').upsert(
-      { date: todayDK, username: uname, category: catName, activity: actName, xp, done: next.done, mins: next.mins },
+      { date: dk, username: uname, category: catName, activity: actName, xp, done: next.done, mins: next.mins },
       { onConflict: 'date,username,category,activity' }
     );
     if (err) {
-      setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [todayDK]: { ...((prev[uname] || {})[todayDK] || {}), [key]: current } } }));
+      setAllLogs(prev => ({ ...prev, [uname]: { ...(prev[uname] || {}), [dk]: { ...((prev[uname] || {})[dk] || {}), [key]: current } } }));
       setError('Sync failed.');
     }
     setSyncing(false);
@@ -269,6 +270,18 @@ export default function App() {
     await sb.from('tasks').update({ status: 'deleted' }).eq('id', id);
   }, []);
 
+  const reopenTask = React.useCallback(async (taskId, uname) => {
+    if (readOnly) return;
+    setTasks(prev => {
+      const ut = [...(prev[uname] || [])];
+      const i = ut.findIndex(t => t.id === taskId);
+      if (i > -1) ut[i] = { ...ut[i], status: 'active', completedAt: '', actMins: 0 };
+      return { ...prev, [uname]: ut };
+    });
+    const { error: err } = await sb.from('tasks').update({ status: 'active', completed_at: null, act_mins: 0 }).eq('id', taskId);
+    if (err) setError('Could not re-open task.');
+  }, [readOnly]);
+
   const toggleStar = React.useCallback(async (id, uname) => {
     const task = (tasks[uname] || []).find(t => t.id === id);
     const next = !task?.starred;
@@ -323,15 +336,9 @@ export default function App() {
   // ── Render ────────────────────────────────────────────────────────────
 
   if (!cu) return <Login onLogin={login} />;
-  if (loading) return (
-    <div style={{ background: '#F5F3EE', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-      <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(32)}</div>
-      <div className="mono" style={{ color: '#A09C96', fontSize: 13 }}>Loading Quest Log…</div>
-    </div>
-  );
 
   const sharedMeasProps = { cu, measurements, targets, onLogMeasurements: logMeasurements, onSaveTargets: saveTargets, ac, readOnly, viewingUser };
-  const sharedTaskProps = { cu: activeUser, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, readOnly, viewingUser, ac };
+  const sharedTaskProps = { cu: activeUser, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, reopenTask, readOnly, viewingUser, ac };
 
   return (
     <div style={{ background: '#F5F3EE', color: '#1A1814', minHeight: '100vh' }}>
@@ -438,21 +445,35 @@ export default function App() {
         </div>
       )}
 
+      {/* Toast notification — fixed above bottom nav, auto-dismisses */}
       {error && (
-        <div style={{ margin: '8px 16px', padding: '10px 14px', borderRadius: 10, background: '#C4787814', border: '1px solid #C4787844', fontSize: 13, color: '#C47878', display: 'flex', justifyContent: 'space-between' }}>
-          {error}<button onClick={() => setError(null)} style={{ color: '#C47878', cursor: 'pointer' }}>{I.X()}</button>
+        <div className="fadeUp" style={{ position: 'fixed', bottom: isMobile ? 100 : 24, left: '50%', transform: 'translateX(-50%)', background: '#1A1814', color: '#FFFFFF', padding: '10px 16px', borderRadius: 12, fontSize: 13, fontWeight: 500, zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#C47878' }}>⚠</span>{error}
+          <button onClick={() => setError(null)} style={{ color: '#A09C96', marginLeft: 4, cursor: 'pointer' }}>{I.X()}</button>
         </div>
       )}
       {showUserPicker && <div onClick={() => setShowUserPicker(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />}
 
       {/* Page content */}
       <div style={{ padding: isMobile ? '16px 16px 0' : '24px 32px 0', maxWidth: isMobile ? '100%' : 960, margin: '0 auto' }}>
-        {tab === 'home'  && <HomeTab cu={activeUser} allLogs={allLogs} tasks={tasks} ac={ac} dayOffset={dayOffset} onDayChange={setDayOffset} isMobile={isMobile} completeTask={completeTask} toggleSubtask={toggleSubtask} toggleStar={toggleStar} onAddTask={() => setShowAddTask(true)} />}
-        {tab === 'daily' && <DailyTab cu={activeUser} allLogs={allLogs} toggle={toggle} ac={ac} selectedHabits={selectedHabits} />}
-        {tab === 'tasks' && <TasksTab {...sharedTaskProps} onAddTask={() => setShowAddTask(true)} />}
-        {tab === 'squad' && <SquadTab allLogs={allLogs} challenges={challenges} cu={cu} onSetChallenge={setChallenge} onCompleteChallenge={completeChallenge} />}
-        {tab === 'body'  && <MeasuresTab {...sharedMeasProps} />}
-        {tab === 'setup' && <SetupTab ac={ac} readOnly={readOnly} selectedHabits={selectedHabits} onToggleHabit={toggleHabit} />}
+        {loading ? (
+          <div className="fade">
+            {[140, 80, 200, 120].map((h, i) => (
+              <div key={i} style={{ borderRadius: 16, background: '#EAE6DE', height: h, marginBottom: 12, overflow: 'hidden', position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(245,243,238,0.7) 50%, transparent 100%)', animation: 'shimmer 1.4s ease-in-out infinite' }} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {tab === 'home'  && <HomeTab cu={activeUser} allLogs={allLogs} tasks={tasks} ac={ac} dayOffset={dayOffset} onDayChange={setDayOffset} isMobile={isMobile} completeTask={completeTask} toggleSubtask={toggleSubtask} toggleStar={toggleStar} onAddTask={() => setShowAddTask(true)} />}
+            {tab === 'daily' && <DailyTab cu={activeUser} allLogs={allLogs} toggle={toggle} ac={ac} selectedHabits={selectedHabits} />}
+            {tab === 'tasks' && <TasksTab {...sharedTaskProps} onAddTask={() => setShowAddTask(true)} />}
+            {tab === 'squad' && <SquadTab allLogs={allLogs} challenges={challenges} cu={cu} onSetChallenge={setChallenge} onCompleteChallenge={completeChallenge} />}
+            {tab === 'body'  && <MeasuresTab {...sharedMeasProps} />}
+            {tab === 'setup' && <SetupTab ac={ac} readOnly={readOnly} selectedHabits={selectedHabits} onToggleHabit={toggleHabit} />}
+          </>
+        )}
       </div>
 
       {/* Mobile bottom nav */}
