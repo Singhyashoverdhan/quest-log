@@ -112,14 +112,26 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
           const allVals = sortedDates.map(d => userM[d]?.[a.name]).filter(v => v != null);
           const prev = allVals.length > 1 ? allVals[allVals.length - 2] : null;
           const change = l?.val != null && prev != null ? +(l.val - prev).toFixed(2) : null;
+          const dist = l?.val != null && t != null ? +(l.val - t).toFixed(2) : null;
           const isSelected = selectedArea === a.name;
           return (
-            <div key={a.name} onClick={() => setSelectedArea(a.name)} style={C.card({ padding: '12px', cursor: 'pointer', outline: isSelected ? `2px solid ${ac}` : 'none', outlineOffset: 0, transition: 'outline .15s' })}>
-              <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name}</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: l?.val != null ? '#1A1814' : '#D8D4CC', lineHeight: 1 }}>{l?.val ?? '—'}</div>
-              <div style={{ display: 'flex', gap: 6, marginTop: 5, flexWrap: 'wrap', alignItems: 'center' }}>
-                {change != null && <span className="mono" style={{ fontSize: 10, color: change > 0 ? '#C47878' : '#7BAF92', fontWeight: 600 }}>{change > 0 ? '+' : ''}{change}</span>}
-                {t != null && <span className="mono" style={{ fontSize: 10, color: '#C4C0BA' }}>↯ {t}</span>}
+            <div key={a.name} onClick={() => setSelectedArea(a.name)} style={C.card({ padding: '12px', cursor: 'pointer', outline: isSelected ? `2px solid ${ac}` : 'none', outlineOffset: 0, transition: 'outline .15s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
+              <div>
+                <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: l?.val != null ? '#1A1814' : '#D8D4CC', lineHeight: 1 }}>{l?.val ?? '—'}</div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                {change != null
+                  ? <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: change > 0 ? '#C47878' : change < 0 ? '#7BAF92' : '#A09C96' }}>{change > 0 ? '↑' : change < 0 ? '↓' : '—'} {Math.abs(change)}</div>
+                  : <div className="mono" style={{ fontSize: 11, color: '#C4C0BA' }}>—</div>}
+                {dist != null && (() => {
+                  const pct = Math.round(100 - Math.abs(dist) / t * 100);
+                  return (
+                    <div className="mono" style={{ fontSize: 10, marginTop: 3, color: pct >= 100 ? '#7BAF92' : '#A09C96' }}>
+                      {pct >= 100 ? '✓' : `${Math.max(0, pct)}%`}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );
