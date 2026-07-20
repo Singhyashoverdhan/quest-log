@@ -80,7 +80,7 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
         {sparkData.length > 0 ? (
           <div style={{ overflowX: 'auto' }}>
             {(() => {
-              const W = Math.max(280, sparkData.length * 64);
+              const W = Math.max(280, sparkData.length * 100);
               const pad = 6;
               const xOf = i => pad + ((W - pad * 2) / Math.max(sparkData.length - 1, 1)) * i;
               return (
