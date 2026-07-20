@@ -42,7 +42,7 @@ export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar,
             </div>
           ))}
         </div>
-        {!readOnly && <button onClick={() => onStar && onStar(task.id, task.user)} style={{ color: task.starred ? '#C9A970' : '#D8D4CC', flexShrink: 0, cursor: 'pointer' }}>{I.Star(11, task.starred ? '#C9A970' : 'none')}</button>}
+        {!readOnly && <button onClick={() => onStar && onStar(task.id, task.user)} style={{ flexShrink: 0, cursor: 'pointer' }}>{I.Star(11, task.starred ? '#C9A970' : 'none', task.starred ? 'none' : '#D8D4CC')}</button>}
       </div>
     </div>
   );

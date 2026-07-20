@@ -59,10 +59,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
         <div style={{ textAlign: 'center', color: '#A09C96', fontSize: 13, padding: '16px 0 8px' }}>All caught up!</div>
       )}
       {activeTasks.map(t => (
-        <div key={t.id} style={{ position: 'relative' }}>
-          <TaskRow task={t} ac={ac} sc={SC} urgency={urgency(t)} onComplete={() => setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
-          {!readOnly && <button onClick={() => deleteTask(t.id, t.user)} style={{ position: 'absolute', right: 8, top: 10, color: '#D8D4CC', cursor: 'pointer' }}>{I.Trash()}</button>}
-        </div>
+        <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={urgency(t)} onComplete={() => setTimeModal({ id: t.id, title: t.title })} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
       ))}
 
       {/* Completed tasks */}
@@ -74,10 +71,7 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
             <div style={{ flex: 1, height: 1, background: '#EAE6DE' }} />
           </div>
           {doneTasks.map(t => (
-            <div key={t.id} style={{ position: 'relative' }}>
-              <TaskRow task={t} ac={ac} sc={SC} urgency={undefined} onComplete={() => {}} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
-              {!readOnly && <button onClick={() => deleteTask(t.id, t.user)} style={{ position: 'absolute', right: 8, top: 10, color: '#D8D4CC', cursor: 'pointer' }}>{I.Trash()}</button>}
-            </div>
+            <TaskRow key={t.id} task={t} ac={ac} sc={SC} urgency={undefined} onComplete={() => {}} onToggleSub={toggleSubtask} onStar={toggleStar} readOnly={readOnly} />
           ))}
         </>
       )}
