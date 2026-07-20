@@ -5,18 +5,19 @@ import { fmtDS, fmtM } from '../utils';
 
 export default function TaskRow({ task, ac, sc, onComplete, onToggleSub, onStar, compact, readOnly, urgency }) {
   const [open, setOpen] = React.useState(false);
+  const done = task.status === 'done';
   const col = sc[task.section] || '#A09C96';
   const subDone = task.subtasks.filter(s => s.done).length;
   const urgCol = urgency === 'overdue' ? '#C47878' : urgency === 'today' ? '#C9A970' : urgency === 'soon' ? '#C4B78A' : null;
   return (
     <div style={{ marginBottom: compact ? 6 : 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: `1px solid ${urgCol ? urgCol + '44' : '#EAE6DE'}`, background: urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
-        {!readOnly && (
-          <button onClick={onComplete} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${col}`, background: 'transparent', flexShrink: 0, marginTop: 1, cursor: 'pointer' }} />
-        )}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: compact ? '8px 10px' : '11px 13px', borderRadius: 12, border: `1px solid ${done ? '#EAE6DE' : urgCol ? urgCol + '44' : '#EAE6DE'}`, background: done ? '#FAFAF8' : urgCol ? urgCol + '06' : '#FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color .15s' }}>
+        <button onClick={!done ? onComplete : undefined} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${done ? '#7BAF92' : col}`, background: done ? '#7BAF92' : 'transparent', flexShrink: 0, marginTop: 1, cursor: done ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF' }}>
+          {done && I.Check(10)}
+        </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ fontSize: compact ? 13 : 14, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1A1814' }}>{task.title}</span>
+            <span style={{ fontSize: compact ? 13 : 14, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: done ? '#A09C96' : '#1A1814', textDecoration: done ? 'line-through' : 'none' }}>{task.title}</span>
             {task.starred && <span style={{ color: '#C9A970', flexShrink: 0 }}>{I.Star(10, '#C9A970')}</span>}
           </div>
           {!compact && task.notes && <div style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>{task.notes}</div>}
