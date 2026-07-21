@@ -92,8 +92,8 @@ const LEFT_TABS  = [
   { id: 'daily', label: 'Daily', icon: I.Activity },
 ];
 const RIGHT_TABS = [
-  { id: 'body',  label: 'Body',  icon: I.BarChart },
   { id: 'tasks', label: 'Tasks', icon: I.Task },
+  { id: 'body',  label: 'Body',  icon: I.BarChart },
 ];
 const ALL_TABS = [
   { id: 'home',  label: 'Home',  icon: I.Home },
@@ -377,18 +377,25 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
+            <button onClick={() => setShowQuickAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              {I.Plus(13)} Add
+            </button>
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
-                {cu.name[0]}
-              </button>
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ ...C.nb }}>{I.Menu()}</button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 190, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
                   <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
                   <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
-                    {I.Settings(14)} Settings
+                    {I.Settings(14)} Set my routine
+                  </button>
+                  <button onClick={() => { setTab('body'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Target(14)} Set Body Goals
+                  </button>
+                  <button onClick={() => { loadData(); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Refresh(14)} Refresh
                   </button>
                   <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
                     {I.Logout()} Sign out
@@ -396,10 +403,6 @@ export default function App() {
                 </div>
               )}
             </div>
-            <button onClick={() => setShowQuickAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              {I.Plus(13)} Add
-            </button>
-            <button onClick={loadData} style={{ ...C.nb }}>{I.Refresh()}</button>
           </div>
         </div>
       )}
@@ -414,17 +417,21 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 30, height: 30, borderRadius: '50%', background: cu.color + '22', border: `1px solid ${cu.color}44`, color: cu.color, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
-                {cu.name[0]}
-              </button>
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ ...C.nb }}>{I.Menu()}</button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 190, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
                   <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
                   <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
-                    {I.Settings(14)} Settings
+                    {I.Settings(14)} Set my routine
+                  </button>
+                  <button onClick={() => { setTab('body'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Target(14)} Set Body Goals
+                  </button>
+                  <button onClick={() => { loadData(); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                    {I.Refresh(14)} Refresh
                   </button>
                   <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
                     {I.Logout()} Sign out
@@ -432,7 +439,6 @@ export default function App() {
                 </div>
               )}
             </div>
-            <button onClick={loadData} style={{ ...C.nb }}>{I.Refresh()}</button>
           </div>
         </div>
       )}
@@ -470,20 +476,21 @@ export default function App() {
 
       {/* Mobile bottom nav */}
       {isMobile && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1px solid #EAE6DE', display: 'flex', alignItems: 'center', padding: '8px 0 24px', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)' }}>
+        <div className="mono" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1px solid #EAE6DE', display: 'flex', alignItems: 'center', padding: '20px 8px 28px', zIndex: 100 }}>
           {LEFT_TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#A09C96', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
-              {t.icon(tab === t.id ? 22 : 20)}{t.label}
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <span style={{ color: tab === t.id ? '#1A1814' : '#A09C96', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', transition: 'color .15s' }}>{t.label}</span>
+              <span style={{ width: tab === t.id ? 22 : 0, height: 2, borderRadius: 1, background: '#1A1814', transition: 'width .15s' }} />
             </button>
           ))}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-            <button onClick={() => setShowQuickAdd(true)} style={{ width: 54, height: 54, borderRadius: '50%', background: ac, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 18px ${ac}66`, marginTop: -26, cursor: 'pointer', border: '3px solid #F5F3EE' }}>
-              {I.Plus(22)}
-            </button>
-          </div>
+          <button onClick={() => setShowQuickAdd(true)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <span style={{ color: '#A09C96', fontSize: 20, fontWeight: 500, lineHeight: 1 }}>+</span>
+            <span style={{ width: 0, height: 2 }} />
+          </button>
           {RIGHT_TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: tab === t.id ? ac : '#A09C96', fontSize: 10, fontWeight: 600, cursor: 'pointer', transition: 'color .15s' }}>
-              {t.icon(tab === t.id ? 22 : 20)}{t.label}
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <span style={{ color: tab === t.id ? '#1A1814' : '#A09C96', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', transition: 'color .15s' }}>{t.label}</span>
+              <span style={{ width: tab === t.id ? 22 : 0, height: 2, borderRadius: 1, background: '#1A1814', transition: 'width .15s' }} />
             </button>
           ))}
         </div>
