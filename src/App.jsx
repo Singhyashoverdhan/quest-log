@@ -365,10 +365,6 @@ export default function App() {
       {!isMobile && (
         <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <div>
-              <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
-            </div>
             {ALL_TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 20, background: tab === t.id ? ac : 'transparent', color: tab === t.id ? '#FFFFFF' : '#706C66', fontSize: 13, fontWeight: 600, transition: 'all .15s', cursor: 'pointer' }}>
                 {t.icon(14)}{t.label}
@@ -409,11 +405,7 @@ export default function App() {
 
       {/* Mobile slim header */}
       {isMobile && (
-        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 2 }}>QUEST LOG</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1814' }}>{activeUser?.name}</div>
-          </div>
+        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
             <div style={{ position: 'relative' }}>
