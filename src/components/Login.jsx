@@ -22,7 +22,7 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#F5F3EE' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#FFFFFF' }}>
       <div className="mono" style={{ fontSize: 10, color: '#A09C96', letterSpacing: 2, marginBottom: 6 }}>DAY IN LIFE</div>
       <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 4, color: '#1A1814' }}>Quest Log</div>
       <div style={{ fontSize: 13, color: '#A09C96', marginBottom: 48 }}>Your personal operating system</div>

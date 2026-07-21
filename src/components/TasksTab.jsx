@@ -18,7 +18,7 @@ function urgency(task) {
 
 const SC = Object.fromEntries(SECTIONS.map(s => [s.name, s.color]));
 
-export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSubtask, deleteTask, toggleStar, reopenTask, readOnly, viewingUser, ac }) {
+export default function TasksTab({ cu, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, reopenTask, readOnly, viewingUser, ac }) {
   const [activeSection, setActiveSection] = React.useState('All');
   const [timeModal, setTimeModal] = React.useState(null);
   const uname = viewingUser ? viewingUser.name : cu.name;
@@ -32,9 +32,8 @@ export default function TasksTab({ cu, tasks, onAddTask, completeTask, toggleSub
   return (
     <div className="fade">
       {timeModal && <TimeModal label={timeModal.title} onClose={() => setTimeModal(null)} onSubmit={m => { completeTask(timeModal.id, m); setTimeModal(null); }} />}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814' }}>{readOnly ? `${uname}'s Tasks` : 'My Tasks'}</div>
-        {!readOnly && <button onClick={onAddTask} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{I.Plus(14)} New Task</button>}
       </div>
 
       {/* Section filter pills */}

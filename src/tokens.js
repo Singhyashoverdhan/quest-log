@@ -32,7 +32,7 @@ export const SPACE = {
 // 6 neutrals by role, not by hex value.
 // Kill: #FAFAF8, #F0EDE8, #E8E4DC, #D8D4CC as separate values — they map below.
 export const COLOR = {
-  bg:           '#F5F3EE',  // page background
+  bg:           '#FFFFFF',  // page background
   surface:      '#FFFFFF',  // card / modal surface
   surfaceMuted: '#F8F6F1',  // input fill, disabled state, done-task bg
   border:       '#EAE6DE',  // every border and divider, one value

@@ -1,6 +1,6 @@
 import React from 'react';
 import { HABIT_CATEGORIES, TOTAL_XP, SECTIONS } from '../data';
-import { getDK, fmtD } from '../utils';
+import { getDK, fmtDS } from '../utils';
 import { C } from './ui';
 import { I } from './Icons';
 import XPRing from './XPRing';
@@ -62,8 +62,6 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
     return Object.entries(myLogs).filter(([k]) => k.startsWith(prefix)).reduce((s, [, dl]) => s + computeXP(dl), 0);
   }, [myLogs, activeDate]);
 
-  const dayLabel = dayOffset === 0 ? 'Today' : dayOffset === -1 ? 'Yesterday' : fmtD(activeDate);
-
   // Sort tasks: overdue → today → soon → starred → rest
   const sortedTasks = React.useMemo(() => {
     const ord = { overdue: 0, today: 1, soon: 2, none: 3 };
@@ -83,17 +81,31 @@ export default function HomeTab({ cu, allLogs, tasks, ac, dayOffset, onDayChange
       {timeModal && <TimeModal label={timeModal.title} optional onClose={() => setTimeModal(null)} onSubmit={m => { completeTask(timeModal.id, m); setTimeModal(null); }} />}
 
       {/* Day navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 16 }}>
-        <button onClick={() => onDayChange(Math.max(dayOffset - 1, -30))} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: dayOffset <= -30 ? 0.3 : 1 }} disabled={dayOffset <= -30}>
-          {I.Left(13)}
-        </button>
-        <div style={{ textAlign: 'center', minWidth: 120 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1814' }}>{dayLabel}</div>
-          {dayOffset !== 0 && <div className="mono" style={{ fontSize: 10, color: '#A09C96', marginTop: 1 }}>{fmtD(activeDate)}</div>}
+      <div style={{ padding: '10px 0 16px', marginBottom: 16, textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 28 }}>
+          <button
+            onClick={() => onDayChange(Math.max(dayOffset - 1, -30))}
+            disabled={dayOffset <= -30}
+            style={{ fontSize: 22, fontWeight: 600, color: '#D8D4CC', cursor: 'pointer', opacity: dayOffset <= -30 ? 0.3 : 1 }}
+          >
+            {new Date(getDK(dayOffset - 1) + 'T00:00:00').getDate()}
+          </button>
+          <div style={{ fontSize: 44, fontWeight: 800, color: '#1A1814', lineHeight: 1 }}>
+            {new Date(activeDate + 'T00:00:00').getDate()}
+          </div>
+          <button
+            onClick={() => onDayChange(Math.min(dayOffset + 1, 0))}
+            disabled={dayOffset >= 0}
+            style={{ fontSize: 22, fontWeight: 600, color: '#D8D4CC', cursor: 'pointer', opacity: dayOffset >= 0 ? 0.2 : 1 }}
+          >
+            {new Date(getDK(dayOffset + 1) + 'T00:00:00').getDate()}
+          </button>
         </div>
-        <button onClick={() => onDayChange(Math.min(dayOffset + 1, 0))} style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #EAE6DE', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#706C66', cursor: 'pointer', opacity: dayOffset >= 0 ? 0.2 : 1 }} disabled={dayOffset >= 0}>
-          {I.Right(13)}
-        </button>
+        <div className="mono" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.5, color: '#A09C96', marginTop: 6, textTransform: 'uppercase' }}>
+          {new Date(activeDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
+          {'  ·  '}
+          {dayOffset === 0 ? 'Today' : dayOffset === -1 ? 'Yesterday' : fmtDS(activeDate)}
+        </div>
       </div>
 
       {/* Stats — ring + flat stats in one card */}

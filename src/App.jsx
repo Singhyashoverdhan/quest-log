@@ -7,6 +7,7 @@ import { I } from './components/Icons';
 import Login from './components/Login';
 import AddTaskModal from './components/AddTaskModal';
 import MeasLogModal from './components/MeasLogModal';
+import TargetModal from './components/TargetModal';
 import HomeTab from './components/HomeTab';
 import DailyTab from './components/DailyTab';
 import TasksTab from './components/TasksTab';
@@ -122,6 +123,7 @@ export default function App() {
   const [showAddTask, setShowAddTask] = React.useState(false);
   const [showQuickMeas, setShowQuickMeas] = React.useState(false);
   const [showQuickAdd, setShowQuickAdd] = React.useState(false);
+  const [showTargetModal, setShowTargetModal] = React.useState(false);
   const [dayOffset, setDayOffset] = React.useState(0);
   const [selectedHabits, setSelectedHabits] = React.useState(new Set());
 
@@ -335,13 +337,14 @@ export default function App() {
 
   if (!cu) return <Login onLogin={login} />;
 
-  const sharedMeasProps = { cu, measurements, targets, onLogMeasurements: logMeasurements, onSaveTargets: saveTargets, ac, readOnly, viewingUser };
+  const sharedMeasProps = { cu, measurements, targets, ac, readOnly, viewingUser };
   const sharedTaskProps = { cu: activeUser, tasks, completeTask, toggleSubtask, deleteTask, toggleStar, reopenTask, readOnly, viewingUser, ac };
 
   return (
-    <div style={{ background: '#F5F3EE', color: '#1A1814', minHeight: '100vh' }}>
+    <div style={{ background: '#FFFFFF', color: '#1A1814', minHeight: '100vh' }}>
       {showAddTask && <AddTaskModal defaultSection="Work" onClose={() => setShowAddTask(false)} onSave={addTask} />}
       {showQuickMeas && <MeasLogModal lastVals={lastMeasVals} onClose={() => setShowQuickMeas(false)} onSave={(date, entries) => { logMeasurements(cu.name, date, entries); setShowQuickMeas(false); }} />}
+      {showTargetModal && <TargetModal cur={targets[cu.name] || {}} onClose={() => setShowTargetModal(false)} onSave={vals => { saveTargets(cu.name, vals); setShowTargetModal(false); }} />}
 
       {/* Quick add bottom sheet */}
       {showQuickAdd && (
@@ -379,21 +382,21 @@ export default function App() {
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowUserPicker(v => !v)} style={{ ...C.nb }}>{I.Menu()}</button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 190, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 172, width: 'max-content', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
                   <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
-                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Settings(14)} Set my routine
                   </button>
-                  <button onClick={() => { setTab('body'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { setTab('body'); setShowTargetModal(true); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Target(14)} Set Body Goals
                   </button>
-                  <button onClick={() => { loadData(); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { loadData(); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Refresh(14)} Refresh
                   </button>
-                  <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
+                  <button onClick={() => logout()} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer', marginTop: 2 }}>
                     {I.Logout()} Sign out
                   </button>
                 </div>
@@ -405,27 +408,27 @@ export default function App() {
 
       {/* Mobile slim header */}
       {isMobile && (
-        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(245,243,238,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #EAE6DE', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 200, background: '#FFFFFF', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {syncing && <div className="spin" style={{ display: 'flex', color: ac }}>{I.Loader(14, ac)}</div>}
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowUserPicker(v => !v)} style={{ ...C.nb }}>{I.Menu()}</button>
+              <button onClick={() => setShowUserPicker(v => !v)} style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1A1814', cursor: 'pointer' }}>{I.Menu()}</button>
               {showUserPicker && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 190, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#FFFFFF', border: '1px solid #EAE6DE', borderRadius: 14, padding: 10, zIndex: 300, minWidth: 172, width: 'max-content', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
                   <div style={{ padding: '4px 10px 10px', borderBottom: '1px solid #EAE6DE', marginBottom: 8 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1814' }}>{cu.name}</div>
                     <div style={{ fontSize: 11, color: '#A09C96', marginTop: 1 }}>Logged in</div>
                   </div>
-                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { setTab('setup'); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Settings(14)} Set my routine
                   </button>
-                  <button onClick={() => { setTab('body'); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { setTab('body'); setShowTargetModal(true); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Target(14)} Set Body Goals
                   </button>
-                  <button onClick={() => { loadData(); setShowUserPicker(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => { loadData(); setShowUserPicker(false); }} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#1A1814', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                     {I.Refresh(14)} Refresh
                   </button>
-                  <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>
+                  <button onClick={() => logout()} className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 8, color: '#C47878', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer', marginTop: 2 }}>
                     {I.Logout()} Sign out
                   </button>
                 </div>

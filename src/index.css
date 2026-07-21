@@ -1,6 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { background: #F5F3EE; color: #1A1814; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; }
+body { background: #FFFFFF; color: #1A1814; font-family: 'IBM Plex Sans', system-ui; -webkit-tap-highlight-color: transparent; }
 .mono { font-family: 'IBM Plex Mono', monospace; }
 input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; }

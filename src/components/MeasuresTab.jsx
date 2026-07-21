@@ -2,14 +2,9 @@ import React from 'react';
 import { MEASUREMENT_AREAS } from '../data';
 import { fmtDSY } from '../utils';
 import { C } from './ui';
-import { I } from './Icons';
 import Sparkline from './Sparkline';
-import MeasLogModal from './MeasLogModal';
-import TargetModal from './TargetModal';
 
-export default function MeasuresTab({ cu, measurements, targets, onLogMeasurements, onSaveTargets, ac, readOnly, viewingUser }) {
-  const [showLog, setShowLog] = React.useState(false);
-  const [showTarget, setShowTarget] = React.useState(false);
+export default function MeasuresTab({ cu, measurements, targets, ac, readOnly, viewingUser }) {
   const [selectedArea, setSelectedArea] = React.useState('Weight');
   const uname = viewingUser ? viewingUser.name : cu.name;
   const userM = measurements[uname] || {};
@@ -29,24 +24,13 @@ export default function MeasuresTab({ cu, measurements, targets, onLogMeasuremen
 
   return (
     <div className="fade">
-      {showLog && <MeasLogModal lastVals={Object.fromEntries(MEASUREMENT_AREAS.map(a => [a.name, latestVals[a.name]?.val]))} onClose={() => setShowLog(false)} onSave={(date, entries) => { onLogMeasurements(uname, date, entries); setShowLog(false); }} />}
-      {showTarget && <TargetModal cur={userT} onClose={() => setShowTarget(false)} onSave={vals => { onSaveTargets(uname, vals); setShowTarget(false); }} />}
-
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814' }}>Body</div>
-          <div className="mono" style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>
-            {sessionsLogged > 0 ? `${sessionsLogged} session${sessionsLogged !== 1 ? 's' : ''} logged` : 'No data yet'}
-            {weightDelta != null && <span style={{ color: weightDelta <= 0 ? '#7BAF92' : '#C47878', marginLeft: 8 }}>· {weightDelta > 0 ? '+' : ''}{weightDelta} kg</span>}
-          </div>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 20, color: '#1A1814' }}>Body</div>
+        <div className="mono" style={{ fontSize: 11, color: '#A09C96', marginTop: 2 }}>
+          {sessionsLogged > 0 ? `${sessionsLogged} session${sessionsLogged !== 1 ? 's' : ''} logged` : 'No data yet'}
+          {weightDelta != null && <span style={{ color: weightDelta <= 0 ? '#7BAF92' : '#C47878', marginLeft: 8 }}>· {weightDelta > 0 ? '+' : ''}{weightDelta} kg</span>}
         </div>
-        {!readOnly && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setShowTarget(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', borderRadius: 20, border: '1px solid #EAE6DE', background: '#FFFFFF', color: '#706C66', fontSize: 11, fontWeight: 500, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>{I.Target()} Targets</button>
-            <button onClick={() => setShowLog(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', borderRadius: 20, background: ac, color: '#FFFFFF', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{I.Plus(12)} Log</button>
-          </div>
-        )}
       </div>
 
       {/* Area selector pills */}
