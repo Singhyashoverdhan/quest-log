@@ -11,7 +11,8 @@ export default function TargetModal({ cur, onSave, onClose }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         {MEASUREMENT_AREAS.map(a => (
           <div key={a.name}>
-            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 4 }}>{a.name}</div>
+            <div style={{ fontSize: 11, color: '#A09C96', marginBottom: 2 }}>{a.name}</div>
+            {a.note && <div style={{ fontSize: 10, color: '#A09C96', marginBottom: 4 }}>{a.note}</div>}
             <input type="number" step="0.1" placeholder="target" value={vals[a.name] ?? ''} onChange={e => setVals(v => ({ ...v, [a.name]: e.target.value }))} style={C.inp({ fontSize: 13 })} />
           </div>
         ))}

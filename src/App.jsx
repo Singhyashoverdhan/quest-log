@@ -471,7 +471,7 @@ export default function App() {
 
       {/* Mobile bottom nav */}
       {isMobile && (
-        <div className="mono" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1px solid #EAE6DE', display: 'flex', alignItems: 'center', padding: '20px 8px 28px', zIndex: 100 }}>
+        <div className="mono" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1px solid #EAE6DE', display: 'flex', alignItems: 'center', padding: '14px 8px calc(14px + env(safe-area-inset-bottom))', zIndex: 100 }}>
           {LEFT_TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <span style={{ color: tab === t.id ? '#1A1814' : '#A09C96', fontSize: 13, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', transition: 'color .15s' }}>{t.label}</span>
